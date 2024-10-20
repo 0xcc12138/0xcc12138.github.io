@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>ETW (Event Tracing for Windows)（没更完）</title>
+      <link href="/ETW%E5%AD%A6%E4%B9%A0/"/>
+      <url>/ETW%E5%AD%A6%E4%B9%A0/</url>
+      
+        <content type="html"><![CDATA[<h1 id="关于ETW-Event-Tracing-for-Windows"><a href="#关于ETW-Event-Tracing-for-Windows" class="headerlink" title="关于ETW (Event Tracing for Windows)"></a>关于ETW (Event Tracing for Windows)</h1><h2 id="ETW介绍"><a href="#ETW介绍" class="headerlink" title="ETW介绍"></a>ETW介绍</h2><p>事件追踪 Event Tracing for Windows (ETW) 是Windows系统内置的强大事件跟踪机制。它可以收集在系统上不同事件和活动的详细信息。这些事件可以是由系统本身发起的（例如加载一个DLL）或者由用户发起的（例如打开一个文件）。 </p><p>无论是用户的程序，还是内核驱动生成的事件都会被ETW记录在日志里面，我们就可以去分析日志知道系统发生了什么。所以对防守方（杀软，EDR啥的），ETW是一个非常实用的工具</p><h2 id="ETW的组成"><a href="#ETW的组成" class="headerlink" title="ETW的组成"></a>ETW的组成</h2><p><strong>提供程序 (Providers)</strong> - 提供程序是最上级组件，他们负责生成事件。提供程序可以是用户模式应用、内核模式驱动程序，或 Windows 内核本身。每个提供程序由一个独有的 GUID 作为标识。 </p><p> <strong>(跟踪)会话 (Tracing session)</strong> - “ETW 会话基础结构充当中间代理，将事件从一个或多个提供程序中继给使用者。 会话是一个内核对象，它将事件收集到内核缓冲区中，并将其发送到指定的文件或实时使用者进程。 可以将多个提供程序映射到单个会话，让用户能够从多个源收集数据。” 简而言之，ETW 会话可作为一个了一个中心容器来负责从单个或者多个 ETW 提供程序中收集和管理事件。 </p><p><strong>控制器 (Controllers)</strong> - 控制器负责“启动”、“停止”或”更新”跟踪会话。当一个会话被启用后，指定的 ETW 提供程序就可以开始发送事件给这个会话，这时使用者 (consumers) 也可以读取这些事件了。</p><p><strong>使用者 (Consumers)</strong> - 使用者是一个应用连接到 ETW 会话来读取已记录的跟踪文件，或者实时捕获活动跟踪会话中的事件并处理事件。一个会话可以不需要任何使用者并保持运行。此外，ETW 使用者可以连接到多个会话，这样使用者可以同时读取多种类型的日志事件（例如系统事件和网络事件）。<br>Windows 的事件查看器和资源监视器都是内置的 ETW 使用者应用。</p><h2 id="ETW实现原理"><a href="#ETW实现原理" class="headerlink" title="ETW实现原理"></a>ETW实现原理</h2><p>（不知道说的对不对，但是查阅资料是这样的）</p><p>ETW 的原理是通过在内核态和用户态的一些关键 API 入口处加入ETW的函数，记录事件数据。这些函数通常内置在 Windows 内核中，能够跟踪包括文件操作、进程&#x2F;线程管理、网络通信等。 </p><p>当应用程序调用这些被钩住的 API 时，ETW 收集到的数据包括调用进程的 ID、执行线程的 ID、时间戳、参数（如文件路径、句柄、操作类型等），然后将这些信息封装为事件。 </p><p>ETW 使用高速缓冲区收集事件数据，这些数据会存储在内存中，然后可以根据预设的追踪配置（如追踪某个特定应用的行为）或通过配置的事件消费者（Trace Session）将事件日志记录下来。 </p><p>每个被跟踪的事件都有其唯一的 GUID，以区分不同类型的操作。比如，一个文件打开操作和一个线程创建操作的事件类型不同，但都可以通过 ETW 被记录 </p><p>ETW 的事件Consumers可以是调试工具、系统日志工具（如 Windows Performance Recorder 或 Event Viewer），或者你自定义的程序。它们通过访问 ETW 提供的事件数据流，分析哪些程序触发了哪些事件。 </p><p>具体来说，我们可以这样验证</p><p><code>ntoskrnl.exe</code> 是我们熟知的操作系统内核可执行文件，包含了 NT 内核的执行层面和负责硬件抽象、句柄管理、和内存管理等。内核通过 EtwTi 函数来管理 ETW。Ti 表示 “threat intelligence” - 威胁情报。</p><p>通过查阅<a href="https://jsecurity101.medium.com/uncovering-windows-events-b4b9db7eac54">资料</a>了解到，当我们在用户模式下调用 <code>WriteProcessMemory</code> 会对应执行 <code>NtWriteVirtualMemory</code>，随之会调用 <code>MiReadWriteVirtualMemory</code>，最后，<code>EtwTiLogReadWriteVm</code> 会被调用来记录读写操作。</p><p>我们可以通过 IDA 来看看 <code>MiReadWriteVirtualMemory</code> 的流程。</p><p><img src="/ETW%E5%AD%A6%E4%B9%A0/1729435089828.png" alt="1729435089828"></p><p>通过查找 <code>MiReadWriteVirtualMemory</code> 我们发现 <code>NtReadVirtualMemory</code>、<code>NtWriteVirtualMemory</code>、和<code>NtReadVirtualMemoryEx</code> 都会调用 <code>MiReadWriteVirtualMemory</code>。</p><p><code>EtwTiLogReadWriteVm</code> 就是我们要找的 EtwTi 函数用于记录读写操作。</p><p>所以以上的验证应该没错</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 免杀 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>详细信息，自签名过360</title>
       <link href="/%E6%B7%BB%E5%8A%A0%E8%AF%A6%E7%BB%86%E4%BF%A1%E6%81%AF,%E8%87%AA%E7%AD%BE%E5%90%8D%E8%BF%87360/"/>
       <url>/%E6%B7%BB%E5%8A%A0%E8%AF%A6%E7%BB%86%E4%BF%A1%E6%81%AF,%E8%87%AA%E7%AD%BE%E5%90%8D%E8%BF%87360/</url>
