@@ -1,0 +1,264 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="Cc12138&#39;s blog">
+<meta property="og:url" content="http://example.com/page/3/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:author" content="Ccai">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/page/3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Cc12138\'s blog',
+  isPost: false,
+  isHome: true,
+  isHighlightShrink: false,
+  isToc: false,
+  postUpdate: '2024-11-04 21:15:15'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="site-info"><h1 id="site-title">Cc12138's blog</h1><div id="site_social_icons"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/PE/" title="PE">PE</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-27T12:28:00.000Z" title="发表于 2024-09-27 20:28:00">2024-09-27</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-27T12:28:00.000Z" title="更新于 2024-09-27 20:28:00">2024-09-27</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/PE/">PE</a></span></div><div class="content">用010Editor解析PE头首先打开模板
+
+然后按 Alt + 4 即可
+
+效果如图
+PE头
+以上是参考图
+1.DOS部分1234567typedef struct _IMAE_DOS_HEADER//  偏移, 意义&#123;     WORD e_magic;              //  0x00, &#x27;MZ&#x27;（0x5A4D）标识         ......中间成员为兼容16位操作系统,可修改可忽略......    LONG e_lfanew;             //  0x3C, PE头的起始地址，默认0xB0处&#125; IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;  
+
+
+
+1.WORD e_magic（0x00处）● 对应PE文件的开头，是PE文件DOS头的标识符”MZ”→0x5A4D  ○ 对应Winnt.h头文件中宏定义: #define IMAGE_DOS_SIGNATURE 0x4D5A &#x2F;&#x2F; MZ2.LONG e_lfanew（0x3C处）● 对应PE文件0x3C处指向NT头 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/%E6%97%A0%E6%A8%A1%E5%9D%97%E6%B3%A8%E5%85%A5%E5%99%A8/" title="无模块注入Dll器项目(安全启动线程版)">无模块注入Dll器项目(安全启动线程版)</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-23T13:53:00.000Z" title="发表于 2024-09-23 21:53:00">2024-09-23</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-23T13:53:00.000Z" title="更新于 2024-09-23 21:53:00">2024-09-23</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E6%97%A0%E6%A8%A1%E5%9D%97%E6%B3%A8%E5%85%A5Dll%E5%99%A8%E9%A1%B9%E7%9B%AE-%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E7%BA%BF%E7%A8%8B%E7%89%88/">无模块注入Dll器项目(安全启动线程版)</a></span></div><div class="content">无模块注入Dll器项目(安全启动线程版)项目介绍无模块注入DLL器是一个用于将动态链接库（DLL）注入到目标进程的工具。与传统DLL注入器不同，它不通过加载整个DLL模块的方式来实现注入，而是采用内存映射等技术直接将DLL的代码映射到目标进程中执行。该项目的目标是实现一个高效、隐蔽的注入方式，以绕过某些防护机制和检测。 
+而且与其他Dll注入器不同的是，注入后，是选择了劫持已知线程入口点起的线程，这样能够更有效地避免被检测
+小小的局限：
+分为32位和64位版本，32位版本只能注入32位dll，64位只能注射64位dll，太懒了哎，宏定义懒得写
+另外路径名不支持中文，懒得改了呜呜
+主要函数分析：修复重定位表
+12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455// 修复重定位表VOID RepairFixReloc( DWORD NewImageBase)&#123;	DWORD Oep = pNtHeader-&gt;OptionalHe ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/x86_C++%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" title="x86 C++逆向分析">x86 C++逆向分析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-13T10:32:00.000Z" title="发表于 2024-09-13 18:32:00">2024-09-13</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-13T10:32:00.000Z" title="更新于 2024-09-13 18:32:00">2024-09-13</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/x86-C-%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">x86 C++逆向分析</a></span></div><div class="content">C++逆向关于Typora插入视频的方法：
+ Typora视频无法正常显示与mp4格式 - elmagnifico’s blog 
+
+直接下载一个格式工厂，然后转一下就行
+因为MP4里面又有很多编码，可能Typora不支持
+输出配置将 视频编码 改为 AVC(H264)即可，这样qq录屏下来的MP4就可以直接插入Typora了
+
+结构体和类结构体和类 都有构造函数，析构函数，和成员函数，两者的区别只有一个，结构体的访问控制默认为public，类的默认访问控制是private。
+值得注意的是，在c++中所谓的private，public，protected都是c++编译器在编译的时候检查的，在实际编译的时候并没有多加什么，也就是说，加这些修饰是给编译器看的，看能否通过。编译成功后，程序在执行过程中不会对访问控制方面又再多检查和限制
+结构体大小：首先要解决的是对齐问题：
+结构体对齐值编译器可以设置：
+
+当然也可以手动设置
+123456789#pragma pack(push)    //保存push指令之前的对齐状态#pragma pack(8)		//设置对齐值为8字节struct Ve ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/x64%E5%86%85%E6%A0%B87(%E5%BC%BA%E5%88%B6%E5%85%B3%E9%97%AD)/" title="Windows x64内核(7)——强制关闭进程">Windows x64内核(7)——强制关闭进程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-12T12:54:00.000Z" title="发表于 2024-09-12 20:54:00">2024-09-12</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-12T12:54:00.000Z" title="更新于 2024-09-12 20:54:00">2024-09-12</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Win-x64%E5%86%85%E6%A0%B8/">Win x64内核</a></span></div><div class="content">Windows x64内核强制关闭进程在用户模式下平时想关闭一些软件一般可以在windows自带的任务管理器关闭，但是某些进程，例如安全软件，或者某些病毒，这些权限比较高在内核态，就删不掉。所以我们就需要在内核驱动将其杀死
+常见的有三种方法：
+
+1.标准方法就是使用ZwOpenProcess打开进程获得句柄，然后使用ZwTerminateProcess这个内核API实现结束进程，最后使用ZwClose关闭句柄。
+2.第二种方法，通过动态定位的方式找到PspTerminateThreadByPointer这个内核函数地址，然后调用该函数结束掉进程中所有的线程，当线程为空则进程也就消亡了。
+3.第三种方法，我将其称作是内存清零法，其核心原理是通过打开进程，得到进程的基址，通过内存填充的方式将对端内存全部置0实现类似于结束的效果。
+
+优缺点讲讲这三个的优缺点：
+ZwTerminateProcess：
+安全性高：这种方法是标准的、合法的内核API调用，不涉及系统内存的非法操作或直接修改内核结构，减少了系统不稳定的风险。  兼容性好：适用于大多数系统和硬件平台，使用的是微软公开的API。
+但是！ ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/x64%E5%86%85%E6%A0%B86(%E9%81%8D%E5%8E%86%E8%BF%9B%E7%A8%8B)/" title="Windows x64内核(6)——遍历进程">Windows x64内核(6)——遍历进程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-11T14:40:00.000Z" title="发表于 2024-09-11 22:40:00">2024-09-11</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-11T14:40:00.000Z" title="更新于 2024-09-11 22:40:00">2024-09-11</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Win-x64%E5%86%85%E6%A0%B8/">Win x64内核</a></span></div><div class="content">Windows x64进程隐藏：断开进程活动链，抹除全局句柄表自己的内容，修改EPROCESS的PID貌似也行……（未完待续）
+通过进程活动链偏移是从内核.exe查出来的，多少有点拙劣，不是很想用API，怕Hook
+123456789101112131415VOID Traversal_Process()&#123;    PEPROCESS currentProcess = PsGetCurrentProcess();    PLIST_ENTRY currentEntry = (PLIST_ENTRY)((ULONG_PTR)currentProcess + 0x188);  // ActiveProcessLinks 的偏移量，WinDbg找出来的    PLIST_ENTRY Temp_PList_Entry = currentEntry-&gt;Flink;    CHAR* FileName = *(CHAR**)((ULONG64)currentProcess + 0x2e0);    KdPrint((&quot;进程:%s\n&quot;, FileName));   ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/x64%E5%86%85%E6%A0%B85(%E8%BF%87%E6%BB%A4%E9%A9%B1%E5%8A%A8)/" title="Windows x64内核(5)——过滤驱动">Windows x64内核(5)——过滤驱动</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-10T01:04:00.000Z" title="发表于 2024-09-10 09:04:00">2024-09-10</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-10T01:04:00.000Z" title="更新于 2024-09-10 09:04:00">2024-09-10</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Win-x64%E5%86%85%E6%A0%B8/">Win x64内核</a></span></div><div class="content">过滤驱动代码例子来源： Win驱动9]Windows分层驱动_windows分层驱动程序 数据-CSDN博客 
+过滤驱动是一种独立的驱动程序，直接插入内核驱动栈中，拦截并处理驱动程序之间的数据传输。它可以拦截底层的I&#x2F;O请求，并在不改变原始请求的情况下，修改、延迟或直接处理这些请求。 
+过滤驱动：位于设备驱动程序堆栈的上层，负责拦截、修改和处理 I&#x2F;O 请求或响应，并可能将其转发给目标驱动。
+目标驱动：位于设备驱动程序堆栈的下层，直接与硬件交互，处理实际的 I&#x2F;O 操作。
+和注册回调的区别：过滤驱动运行在内核模式下的驱动栈中，拦截并处理I&#x2F;O请求；回调函数则在某些事件发生时被内核或应用调用，可能在用户模式或内核模式下运行。过滤驱动可以拦截设备级的I&#x2F;O请求（如文件读写、网络包），而回调函数通常处理系统事件（如进程创建、线程创建、加载模块等）。过滤驱动适合用于文件系统、网络、设备的深度控制和拦截；回调函数则用于监控和响应特定的系统事件，例如进程管理、内存分配等。 
+最重要的是：这玩意贼稳定，受微软支持的，想附加就附加
+当请求完成的时候，会 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/" title="Windows x64内核(4)——回调函数">Windows x64内核(4)——回调函数</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-10T01:02:00.000Z" title="发表于 2024-09-10 09:02:00">2024-09-10</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-10T01:02:00.000Z" title="更新于 2024-09-10 09:02:00">2024-09-10</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Win-x64%E5%86%85%E6%A0%B8/">Win x64内核</a></span></div><div class="content">Windows x64内核x64内核的回调函数因为x64再想要去Hook例如各种门，SSDT表之类的重要数据结构变得异常困难
+为了在内核模式下提供合法的扩展和拦截机制，微软提供了许多回调函数，这些回调允许驱动开发者在特定事件发生时执行自定义代码，而不必直接修改关键的内核数据结构。 
+还有一点，如果没有加载数字签名，调用以下API可能会报错，我们需要在编译选项加一些东西：/INTEGRITYCHECK
+
+进程监控
+API: PsSetCreateProcessNotifyRoutine &#x2F; PsSetCreateProcessNotifyRoutineEx
+
+描述:
+
+PsSetCreateProcessNotifyRoutine：注册一个回调函数，当进程创建或终止时，系统会调用此回调函数。该函数已被PsSetCreateProcessNotifyRoutineEx替代。
+PsSetCreateProcessNotifyRoutineEx：与前者类似，但提供了更多信息，如父进程ID、命令行参数等。
+
+
+
+具体代码，用于检测任何进程的创建与卸载
+12345678910111213 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows x64内核(3)——分页机制">Windows x64内核(3)——分页机制</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-03T11:54:00.000Z" title="发表于 2024-09-03 19:54:00">2024-09-03</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-03T11:54:00.000Z" title="更新于 2024-09-03 19:54:00">2024-09-03</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Win-x64%E5%86%85%E6%A0%B8/">Win x64内核</a></span></div><div class="content">Windows x64内核9-9-9-9-12分页机制介绍之前我们学过的x86用的是2-9-9-12和10-10-12的分页机制
+x64下，分页大小有4K，2M，1G的大小
+如果PDE的PS位为0，则为4K，为1则为2M
+ 如果PDPTE 的PS&#x3D;1的话，指向 1GB 页 
+x64下，4k分页变成了9-9-9-9-12的分页机制
+虽然64位下的地址有64位，但是实际用到的只有48位，这主要因为以下原因：
+
+当前需求有限：
+
+管理复杂度：
+
+
+
+使用完整的 64 位地址空间将引入极大的管理和硬件复杂性。
+
+
+页表大小和效率：
+
+
+使用四级页表（9-9-9-9-12 分级结构）能够有效管理 48 位的虚拟地址空间。使用更多位数意味着增加页表层级，可能需要五级或更多级页表，这会带来额外的内存和性能开销。当前四级页表架构已经能够高效地处理 48 位地址，而无需增加复杂性。
+
+
+我们来依次解析下每一个数字的含义：
+PML4（Page Map Level 4）：页目录指针表
+在windows叫PXE
+
+最高的页表层级，用 9 位来索引 PML4 表项。PML4 表最多可以有 512 个条 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/x64%E5%86%85%E6%A0%B82(%E5%A4%A9%E5%A0%82%E4%B9%8B%E9%97%A8)/" title="Windows x64内核(2)——天堂之门">Windows x64内核(2)——天堂之门</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-03T11:53:00.000Z" title="发表于 2024-09-03 19:53:00">2024-09-03</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-03T11:53:00.000Z" title="更新于 2024-09-03 19:53:00">2024-09-03</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Win-x64%E5%86%85%E6%A0%B8/">Win x64内核</a></span></div><div class="content">Windows x64内核天堂之门简介在x86-64 架构中，有一个特殊的机制可以让 CPU 在 64 位模式和 32 位模式之间进行切换。Heaven&#39;s Gate 就是利用这个机制，在 32 位环境下进入 64 位模式，从而执行 64 位代码并调用 64 位 API。 
+在长模式下（即 64 位处理器启用 64 位功能时），段选择子可以用来确定 CPU 运行在 64 位模式还是兼容模式。 （具体是CS段寄存器的L位，设置为1就是64位模式）
+通过以下代码，32位程序可以转而执行64位汇编代码
+123push 0x33            ; 将 64 位代码段选择子压入堆栈push 64bit_address   ; 压入 64 位模式下要执行的代码地址retf                 ; 远返回，切换到 64 位模式
+
+
+
+
+
+实战一波具体我们实验一下
+1234567891011121314151617181920212223242526272829#include &lt;windows.h&gt;#include &lt;iostream&gt;using  ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/x64%E5%86%85%E6%A0%B81(x64%E5%86%85%E6%A0%B8%E4%B8%8Ex86%E7%9A%84%E4%B8%80%E4%BA%9B%E5%8C%BA%E5%88%AB)/" title="win x64内核（1）——x64内核与x86的一些区别">win x64内核（1）——x64内核与x86的一些区别</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-01T14:30:00.000Z" title="发表于 2024-09-01 22:30:00">2024-09-01</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-01T14:30:00.000Z" title="更新于 2024-09-01 22:30:00">2024-09-01</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Win-x64%E5%86%85%E6%A0%B8/">Win x64内核</a></span></div><div class="content">Windows x64内核x64下的分段机制
+前情回顾：
+1. GDT（全局描述符表）
+分段机制: GDT是分段机制的核心部分。它定义了系统中所有的段描述符，供处理器在保护模式下使用。GDT中的描述符用于定义代码段、数据段以及系统段的基地址、段限长、访问权限等。
+功能:
+代码段和数据段: GDT包含代码段（代码段描述符）和数据段（数据段描述符）的定义，描述段的起始地址、段限长、段的特权级（DPL，Descriptor Privilege Level）、段类型等。
+系统段: 包括TSS（任务状态段）、LDT（局部描述符表）等的描述符，用于任务切换和其他系统级功能。
+
+
+
+2. LDT（局部描述符表）
+分段机制: LDT也是分段机制的一部分，但它是GDT的一个补充。LDT允许每个进程或任务有自己独立的段描述符表，从而支持每个进程或任务使用不同的段设置。
+功能:
+局部描述符: LDT提供了局部段描述符，用于定义特定于某个任务或进程的代码段和数据段。每个LDT包含的描述符范围仅限于该LDT，而不是整个系统。
+任务隔离: 通过使用LDT，操作系统可以实现任务间的段隔离，允许不同任务使用不同的段配 ...</div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/2/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#content-inner">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/#content-inner">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/#content-inner">6</a><a class="extend next" rel="next" href="/page/4/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E5%AD%97%E7%AC%A6%E4%B8%B2%20%E6%96%87%E4%BB%B6%20%E6%B3%A8%E5%86%8C%E8%A1%A8/" title="内核字符串,文件,注册表操作">内核字符串,文件,注册表操作</a><time datetime="2024-11-03T15:19:00.000Z" title="发表于 2024-11-03 23:19:00">2024-11-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/IRP%E7%9A%84%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/" title="IRP的深入理解(持续更新)">IRP的深入理解(持续更新)</a><time datetime="2024-11-01T03:10:00.000Z" title="发表于 2024-11-01 11:10:00">2024-11-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/Sfilter/" title="Sfilter的实现原理">Sfilter的实现原理</a><time datetime="2024-10-31T13:09:00.000Z" title="发表于 2024-10-31 21:09:00">2024-10-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E6%9F%A5%E7%9C%8BIRP%E6%B3%A8%E5%86%8C%E5%87%BD%E6%95%B0/" title="查看设备对象IRP请求处理函数">查看设备对象IRP请求处理函数</a><time datetime="2024-10-29T13:29:00.000Z" title="发表于 2024-10-29 21:29:00">2024-10-29</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E6%95%B0%E6%8D%AE%E5%BA%93/" title="数据库">数据库</a><time datetime="2024-10-26T15:25:00.000Z" title="发表于 2024-10-26 23:25:00">2024-10-26</time></div></div></div></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/x86%E4%B8%8B%E7%9A%84c-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" style="font-size: 1.1em; color: #999">x86下的c++异常处理</a> <a href="/tags/FPS%E8%BE%85%E5%8A%A9/" style="font-size: 1.2em; color: #999da3">FPS辅助</a> <a href="/tags/Windows%E6%B6%88%E6%81%AF%E9%92%A9%E5%AD%90/" style="font-size: 1.1em; color: #999">Windows消息钩子</a> <a href="/tags/x86-C-%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">x86 C++逆向分析</a> <a href="/tags/x64%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">x64异常分析</a> <a href="/tags/%E5%85%8D%E6%9D%80/" style="font-size: 1.4em; color: #99a5b6">免杀</a> <a href="/tags/c/" style="font-size: 1.1em; color: #999">c++</a> <a href="/tags/MFC%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">MFC逆向分析</a> <a href="/tags/CE%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 1.1em; color: #999">CE的使用</a> <a href="/tags/%E6%97%A0%E6%A8%A1%E5%9D%97%E6%B3%A8%E5%85%A5Dll%E5%99%A8%E9%A1%B9%E7%9B%AE-%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E7%BA%BF%E7%A8%8B%E7%89%88/" style="font-size: 1.1em; color: #999">无模块注入Dll器项目(安全启动线程版)</a> <a href="/tags/%E6%96%87%E4%BB%B6%E8%BF%87%E6%BB%A4/" style="font-size: 1.1em; color: #999">文件过滤</a> <a href="/tags/PE/" style="font-size: 1.1em; color: #999">PE</a> <a href="/tags/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">病毒分析</a> <a href="/tags/Win-x64%E5%86%85%E6%A0%B8/" style="font-size: 1.3em; color: #99a1ac">Win x64内核</a> <a href="/tags/Windows%E5%86%85%E6%A0%B8/" style="font-size: 1.5em; color: #99a9bf">Windows内核</a> <a href="/tags/x64%E9%80%86%E5%90%91/" style="font-size: 1.1em; color: #999">x64逆向</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.1em; color: #999">数据库</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/11/"><span class="card-archive-list-date">十一月 2024</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/10/"><span class="card-archive-list-date">十月 2024</span><span class="card-archive-list-count">18</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/09/"><span class="card-archive-list-date">九月 2024</span><span class="card-archive-list-count">10</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/08/"><span class="card-archive-list-date">八月 2024</span><span class="card-archive-list-count">10</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/07/"><span class="card-archive-list-date">七月 2024</span><span class="card-archive-list-count">15</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/06/"><span class="card-archive-list-date">六月 2024</span><span class="card-archive-list-count">3</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">58</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2024-11-04T13:15:15.601Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>
