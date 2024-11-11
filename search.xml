@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>Minifilter</title>
+      <link href="/Minifilter/"/>
+      <url>/Minifilter/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Minifilter"><a href="#Minifilter" class="headerlink" title="Minifilter"></a>Minifilter</h1><h2 id="Minifilter简介"><a href="#Minifilter简介" class="headerlink" title="Minifilter简介"></a>Minifilter简介</h2><p>MiniFilter是微软为我们开发的一个新的驱动,称为过滤管理器.(Filter Manager或者 fltmgr).这个驱动主要作用就是如果有文件操作可以通知我们. </p><p><code>Minifilter</code>与<code>legacy filter</code>的区别：</p><p>1.比sfilter加载顺序更易控制，因为Minifilter可以设置<code>Altitude</code></p><p>对于<strong>Minifilter</strong>来说，Altitude 是一个非常重要的概念，因为 Minifilter 结构允许多个过滤驱动共存，而 Altitude 数值用于规定每个驱动的层级位置，高度越低的驱动越靠近文件系统核心，优先处理文件操作。</p><p>而Sfilter要自己手动Attach，如果多个过滤设备的话，加载顺序难免会较难控制 </p><p>2.Minifilter具有可卸载能力<br>而<code>legacy filter</code>卸载可能会蓝屏，原因是可能存在仍在处理的IRP请求</p><p>3.CallBack模型，只需要处理必要操作的能力</p><p>提供了Pre和Post两个类型的回调</p><p>4.兼容性更好</p><p>5.名字更好处理：提供了函数一键获取文件路径</p><p>6.同样遵循IRQL，锁等内核机制</p><h2 id="总体框架"><a href="#总体框架" class="headerlink" title="总体框架"></a>总体框架</h2><p>框架（1）</p><p><img src="/Minifilter/1731294907375.png" alt="1731294907375"></p><p>以上是用Filter管理器简化后的I&#x2F;O栈和minifilter驱动</p><p>流程是这样的</p><p>首先由用户模式发送的文件I&#x2F;O发送给 I&#x2F;O 管理器，由I&#x2F;O管理器去将用户层发来的数据和命令封装为IRP</p><p>原来的模式是，I&#x2F;O管理器将这个IRP一次发给文件系统驱动，再发给磁盘系统驱动，最后发给硬件</p><p>现在多了一个FilterManager，<strong>Filter Manager</strong> 位于 <strong>I&#x2F;O 管理器</strong> 和 <strong>文件系统驱动</strong> 之间的中间层。它是一个内核组件，用于管理文件系统的 Minifilter 驱动。Filter Manager 通过拦截并协调所有 I&#x2F;O 请求，为所有文件系统 I&#x2F;O 操作提供了一个必经之路，以便调用注册的 Minifilter 驱动。 </p><p>现在I&#x2F;O管理器发IRP的时候，要先发给Filter Manager，如果注册了Minifilter，这个Filter Manager会把IRP封装为 <code>CALLBACK_DATA</code>这个结构，然后发给Minifilter进行处理</p><p>minifilter传递顺序是 A-&gt;B-&gt;C，任何一层都可以决定是否将IRP继续往下发或者到此为止。</p><p>框架（2）</p><p><img src="/Minifilter/1731296572086.png" alt="1731296572086"></p><p>稍微复杂点：</p><p>这幅图就告诉我们，可以既安装Legacy Filter，也可以安装Minifilter，两者不冲突，另外， Windows 系统将 Legacy Filter 固定在 Frame 1 和 Frame 0 之间是为了确保系统的兼容性和稳定性。  如果希望在更低的层次拦截请求，建议使用 Minifilter 驱动程序代替 Legacy Filter Driver。Minifilter 驱动通过 Altitude 值进行排序，可以放置在 Frame 0 以达到较低的优先级。 </p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> Minifilter </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>QT开发框架(持续更新)</title>
       <link href="/Qt%E6%A1%86%E6%9E%B6/"/>
       <url>/Qt%E6%A1%86%E6%9E%B6/</url>
