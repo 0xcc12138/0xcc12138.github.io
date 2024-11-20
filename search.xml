@@ -4,7 +4,26 @@
   
     
     <entry>
-      <title>Windows应急响应</title>
+      <title>ARK工具开发(持续更新)</title>
+      <link href="/Ark%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91/"/>
+      <url>/Ark%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91/</url>
+      
+        <content type="html"><![CDATA[<h1 id="ARK工具开发"><a href="#ARK工具开发" class="headerlink" title="ARK工具开发"></a>ARK工具开发</h1><p><strong>ARK</strong> 是 <strong>Anti-Rootkit（反Rootkit工具）</strong> 的缩写</p><p><strong>Rootkit</strong> 是一类恶意软件，它被设计用来隐藏自身或其他恶意活动（如病毒、后门等），以避开用户和安全工具的检测。它通常在系统的内核层或用户层中以深层方式运作，可以隐藏文件、进程、网络连接以及注册表项等。 </p><h2 id="进程遍历"><a href="#进程遍历" class="headerlink" title="进程遍历"></a>进程遍历</h2><h3 id="Ring3方法"><a href="#Ring3方法" class="headerlink" title="Ring3方法"></a>Ring3方法</h3><p>Ring3权限级别枚举进程的方法</p><p>1.CreateToolhelp32Snapshot: 用于创建一个系统快照，该快照包含了系统中所有活动的进程和线程的列表。参数TH32CS_SNAPPROCESS表示快照类型为进程。然后Process32First &#x2F; Process32Next: 这两个函数用于遍历由CreateToolhelp32Snapshot创建的进程快照。Process32First用于获取快照中的第一个进程，而Process32Next用于获取下一个进程。</p><p>2.ZwQuerySystemInformation: 这是一个系统调用，用于查询系统信息。参数SystemProcessesAndThreadsInformation表示请求获取系统中所有进程和线程的信息。</p><p>3.EnumWindows: 这个函数用于枚举所有顶层窗口，可以用于获取所有窗口的句柄。GetWindowThreadProcessId: 用于获取与指定窗口句柄关联的线程ID和进程ID。缺点是对于没有窗口的不起作用对于没有窗口的不起作用</p><p>4.for(;;) OpenProcess: 这是一个循环，用于不断尝试打开进程。OpenProcess是一个API调用，用于获取对进程的访问权限。</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>;i&lt;<span class="number">65535</span>;i+=<span class="number">4</span>)<span class="comment">//这样暴力枚举，但是实际上不止65535，理论是2^26,但是一般是小于65535</span></span><br><span class="line">&#123;</span><br><span class="line">     HANDLE hProcess = <span class="built_in">OpenProcess</span>(PROCESS_QUERY_INFORMATION, FALSE, i);</span><br><span class="line">    <span class="keyword">if</span> (hProcess != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        <span class="comment">// Process exists, handle appropriately</span></span><br><span class="line">        <span class="built_in">CloseHandle</span>(hProcess);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h3 id="Ring0方法"><a href="#Ring0方法" class="headerlink" title="Ring0方法"></a>Ring0方法</h3><p><strong><code>PspCidTable</code> 是 Windows 内核中一个重要的数据结构</strong>， 通常指向一个 <strong>句柄表（<code>Handle Table</code>）</strong> ，存着EProcessId&#x2F;EThread，只要能给出PID，TID，就能在这个表找出进程线程对象，用于管理和快速查找系统中的进程和线程对象。 </p><p> <a href="https://blog.csdn.net/Simon798/article/details/106572336">x64驱动 遍历 PspCidTable 枚举隐进程和线程_驱动编程 遍历cidtable-CSDN博客</a> </p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> ARK工具开发 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Windows应急响应(持续更新)</title>
       <link href="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/"/>
       <url>/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/</url>
       
