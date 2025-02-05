@@ -1,0 +1,340 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="Cc12138&#39;s blog">
+<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:author" content="Ccai">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Cc12138\'s blog',
+  isPost: false,
+  isHome: true,
+  isHighlightShrink: false,
+  isToc: false,
+  postUpdate: '2025-02-05 11:07:27'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="site-info"><h1 id="site-title">Cc12138's blog</h1><div id="site_social_icons"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-15T07:58:43.300Z" title="更新于 2025-01-15 15:58:43">2025-01-15</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/WDF%E6%A1%86%E6%9E%B6/">WDF框架</a></span></div><div class="content">WDF框架学习WDF是什么？Windows Driver Framework (WDF) 是微软提供的一套用于开发Windows设备驱动程序的框架。WDF分为两个子框架：
+KMDF (Kernel-Mode Driver Framework)：用于开发内核模式的驱动程序。UMDF (User-Mode Driver Framework)：用于开发用户模式的驱动程序。WDF框架简化了驱动程序开发的复杂性，提供了丰富的API和工具，使得开发者能够更专注于业务逻辑的实现，而不是底层驱动的细节。
+总之，将WDF理解为对WDM做了封装，类似于SDK和MFC之间的关系
+第一节：第一个WFP驱动程序：12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455#include &lt;ntddk.h&gt;#include &lt;wdf.h&gt;#define DebugPrint(...) DbgPrintEx(DPFLTR_IHVDRIVER_ID,  ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-02-04T06:23:48.693Z" title="更新于 2025-02-04 14:23:48">2025-02-04</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/windows%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/">windows内核网络过滤</a></span></div><div class="content">NDIS网络过滤驱动为什么选择NDIS驱动过滤？如果是绑定在协议驱动，那比较麻烦，可能说要各个协议驱动都加上一个过滤驱动设备，才能监视到。协议驱动能截获接收到的包，但无法截获所有发送的包
+仅拦截特定协议: 协议驱动只能拦截特定协议的数据包，例如 TCP 或 UDP 数据包。 它无法拦截其它协议的数据包，例如 ICMP 数据包。 这使得它无法实现对所有网络流量的全面监控和过滤。
+但是这些协议驱动最终都要把数据发送到NDIS中间层驱动，所以我们在这里拦截能够拦截到所有的
+NDIS组成小端口（Miniport）是 NDIS 驱动架构中的一个关键组件。它是一个底层驱动，负责与具体的硬件设备（如网卡）交互，同时为上层协议驱动提供服务。 
+协议部分用于与上层协议驱动交互，接收上层数据并传递给小端口。
+小端口部分则与底层驱动交互，负责将数据发送到网络或从网络接收数据。
+为了让协议部分和小端口部分协同工作，必须通过 关联 的方式将它们绑定在一起。
+通过调用 NdisIMAssociateMiniport 函数将协议部分（由 ProtHandle 标识）与小端口部分（由 DriverHandle 标识） ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-06T14:46:34.937Z" title="更新于 2025-01-06 22:46:34">2025-01-06</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/">病毒分析</a></span></div><div class="content">病毒分析常用工具：
+PCHunter.exe：看Hook挺方便
+API Monitor.exe :可以用来监控三环API的调用
+ProcessMonitor.exe：这个比火绒安全软件强在查看调用堆栈上，火绒做的似乎有点bug
+软件系统安全赛——钓鱼邮件题目：生日礼物.exe 生日礼物.bin 
+要求是找到通信的IP和端口
+不过事实上直接丢到沙箱就跑出来了
+
+但是还是想抱着完全分析的角度，所以我对这个程序进行了一次比较久的分析
+
+沙箱说这是一个UPX的壳子，那我们就手动脱一下吧
+这是OEP入口点，开局就是四个push
+
+一般的start函数都是长这样，那确实是加壳了
+
+我们猜测它是一个压缩壳（虽然沙箱明说了是压缩壳），那么我们就直接用大名鼎鼎的ESP定律法即可
+单步执行完四个push，然后在内存转到rsp，然后在这里下一个硬件访问断点
+  
+ 然后发现有一个大跳，猜测是真正的OEP 
+ 感觉确实像，有个0x28的特征 
+ 然后直接dump，找到导入表，修复导入表等等常规操作 
+应该确实没毛病了，直接能搜到main函数
+
+但是奇怪，脱了壳跑不起来，留个坑，后续解决了来唠唠
+因为题目是去找 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-10T10:08:21.709Z" title="更新于 2025-01-10 18:08:21">2025-01-10</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/windows%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/">windows内核网络过滤</a></span></div><div class="content">网络防火墙技术TDIxp是有TDI的，但是win vista之后就没有了
+
+应用层使用 TCP 协议通信的流程以下是应用层通过 TCP 协议通信时的典型流程：
+
+用户模式应用程序调用 WinSock API
+
+
+应用程序使用 WinSock API（如 socket、connect、send、recv）进行通信。
+这些 API 调用会通过 ws2_32.dll 和 mswsock.dll 进入用户模式的网络子系统。
+
+
+进入内核模式（afd.sys）
+
+
+afd.sys
+
+用于将用户模式的网络请求转换为内核模式的 IRP（I&#x2F;O 请求包）。
+
+
+
+
+TDI 层与协议栈交互
+
+
+TDI.sys
+
+afd.sys 与 TDI 驱动交互，由TDI接口将数据传递给tcpip.sys
+TDI 负责将高级协议请求（如打开连接、发送数据）转化为底层协议栈能够理解的操作。
+
+
+
+然后TDI过滤驱动会将这个IRP包接着往下传递，根据协议，传递到不同设备，例如Tcp是&#x2F;Device&#x2F;tcp
+/Device/Tcp 是 tcpip.sys 暴露的设备对象名称，因此实际上这些 I ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-06T03:49:43.727Z" title="更新于 2025-01-06 11:49:43">2025-01-06</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/ByPassUAC/">ByPassUAC</a></span></div><div class="content">ByPassUAC方法研究一：利用com组件漏洞绕过UACcom组件和Dll的一些区别
+
+
+
+特性
+COM组件
+Dll
+
+
+
+实例化
+CoCreateInstance
+LoadLibrary 和 GetProcAddress
+
+
+依赖注册表
+是
+否
+
+
+使用场景
+面向对象、多语言支持、跨进程通信
+底层函数调用、API 提供
+
+
+开发复杂度
+较高（需要接口定义、注册等）
+较低（直接提供函数导出）
+
+
+反正咱没研究那么深，理解为全局Dll得了
+从网上公开的方法，我们知道
+在CMSTPLUA组件的ICMLuaUtil接口 ，有一个漏洞
+用OleViewDotNet.exe可以查到这个接口对应的dll
+
+这个组件是有自动提升权限的能力的
+
+发现其中ICMLuaTuil接口对应的dll叫cmlua.dll
+
+打开IDA,载入cmlua.dll，直接选择微软服务器进行加载PDB
+然后去看这个类的虚函数
+
+可以看到里面有一个叫ShellExec的
+
+这里能弹一个Shell
+
+当然，如果执行COM提升名称代码的程序身份是不可信的，还是会触发UAC弹窗；若是可信程序，则不会触发UAC弹窗。因此，必须使这 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%81%9A%E4%B8%80%E4%B8%AA%E8%BF%9C%E6%8E%A7/" title="从零开始做一个远控">从零开始做一个远控</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-18T14:45:00.000Z" title="发表于 2024-12-18 22:45:00">2024-12-18</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-04T07:47:54.925Z" title="更新于 2025-01-04 15:47:54">2025-01-04</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E8%BF%9C%E6%8E%A7%E5%BC%80%E5%8F%91/">远控开发</a></span></div><div class="content">从零开始做一个远控已完结，项目地址： 0xcc12138&#x2F;Ez_Spy: 从零开始做一个远控工具，持续更新 
+想做病毒分析，但是无奈好像连远控开发都不太会，所以开一个专题，记录下远控开发的过程
+主要参考文章： 从零开始做远控 簡介篇 做一个属于你自己的远控_zeronet qt-CSDN博客 
+这是16年的项目，有一些是无法正常直接编译的，我只参考这位大佬文章的内容，具体他发布的不在文章的源码我并未参照
+第一节：用QT搭一个初始界面有点拙劣，先随便看看
+
+用UI搓的
+
+右键可以弹出菜单：
+
+第二节：搭建服务端网络通讯要先添加一个Network的模块才可以是用网络库
+
+因为想要移植UI，所以特地研究了一下如何移植别人的项目的UI文件到自己
+移植Qt Ui文件
+我在写QT项目的时候，想拿之前一个项目的UI文件直接使用，但是当我直接把其他项目的UI文件导入我的项目的时候，发现并不能直接使用
+求助ChatGPT，发现QT已经为我们想到了这一切
+在QT的bin目录下，有一个叫uic.exe的应用程序，这个负责将ui文件转为头文件.h，直接导入这个头文件，我们就可以使用原来的ui界面了
+ ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/git%E6%8F%90%E4%BA%A4%E9%A1%B9%E7%9B%AE%E5%88%B0github/" title="Git的使用">Git的使用</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-17T02:29:00.000Z" title="发表于 2024-12-17 10:29:00">2024-12-17</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-12-27T13:07:43.751Z" title="更新于 2024-12-27 21:07:43">2024-12-27</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Git%E7%9A%84%E4%BD%BF%E7%94%A8/">Git的使用</a></span></div><div class="content">Git提交代码到Github远程仓库小记一下，之前都是直接在github网页提交我的代码的，但是文件一多，github网页就会报错，不给干活，这下只好用git来提交了
+1.在你的与远程仓库同步的文件打开 git bash （吐槽一点，如果用git提交，必须保持远程和本地文件是一致的，否则不让提交….）
+例如这里，右键点开git bash
+
+
+2.如果你还没有初始化本地 Git 仓库，可以在项目根目录下运行以下命令来初始化 Git 仓库： 
+运行指令：
+1git init
+
+
+
+
+
+3.连接远程仓库 
+如果你还没有关联远程仓库，需要将远程仓库（GitHub）添加为远程地址。使用 git remote add 来关联远程仓库： 
+1git remote add origin &lt;远程仓库的URL&gt;
+
+URL具体可以在网页看
+
+4.检查文件状态
+查看当前 Git 状态，查看哪些文件有更改或未跟踪：
+主要用来查看 本地工作区 和 暂存区 的状态 
+1git status
+
+
+
+
+
+5.添加文件到暂存区
+使用 git add 命令将更改添加到暂存区：
+git add . 是添加当前目录 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/ETW%E5%AD%A6%E4%B9%A0/" title="ETW (Event Tracing for Windows)">ETW (Event Tracing for Windows)</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-05T09:38:00.000Z" title="发表于 2024-12-05 17:38:00">2024-12-05</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-23T06:08:52.777Z" title="更新于 2025-01-23 14:08:52">2025-01-23</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/ETW/">ETW</a></span></div><div class="content">关于ETW (Event Tracing for Windows)ETW介绍事件追踪 Event Tracing for Windows (ETW) 是Windows系统内置的强大事件跟踪机制。它可以收集在系统上不同事件和活动的详细信息。这些事件可以是由系统本身发起的（例如加载一个DLL）或者由用户发起的（例如打开一个文件）。 
+无论是用户的程序，还是内核驱动生成的事件都会被ETW记录在日志里面，我们就可以去分析日志知道系统发生了什么。所以对防守方（杀软，EDR啥的），ETW是一个非常实用的工具
+ETW的组成提供程序 (Providers) - 提供程序是最上级组件，他们负责生成事件。提供程序可以是用户模式应用、内核模式驱动程序，或 Windows 内核本身。每个提供程序由一个独有的 GUID 作为标识。 
+ (跟踪)会话 (Tracing session) - “ETW 会话基础结构充当中间代理，将事件从一个或多个提供程序中继给使用者。 会话是一个内核对象，它将事件收集到内核缓冲区中，并将其发送到指定的文件或实时使用者进程。 可以将多个提供程序映射到单个会话，让用户能够从多个源收集数 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024%E9%99%A2%E8%B5%9Bpwn%E9%A2%98%E9%A2%98%E8%A7%A3/" title="院赛PWN方向WP">院赛PWN方向WP</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-03T14:47:52.000Z" title="发表于 2024-12-03 22:47:52">2024-12-03</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-12-18T14:48:54.270Z" title="更新于 2024-12-18 22:48:54">2024-12-18</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/PWN/">PWN</a></span></div><div class="content">PWN方向WP快两年不打Pwn，限时回归一下，但是不得不说真的生疏了，泪目….
+what??-mid
+上来就给那么大的一个栈溢出，泪目，以为会很简单
+
+看了下，栈不可执行，而且，在函数表里也没有发现后门函数
+
+嘶，难搞，那咋整
+问了下是SROP    &#x2F;(ㄒoㄒ)&#x2F;~~
+死去的记忆突然攻击
+总之就是看这个文章
+SROP - CTF Wiki 
+原理如下
+sigreturn 是一个系统调用，它会在进程处理完信号时被调用，具体来说，sigreturn 用于恢复在信号处理程序中保存的上下文并返回到信号触发之前的程序执行状态。 
+执行这个系统调用，就会把栈上保存的之前状态的寄存器的值恢复
+所以如果我们能够溢出足够多，并且能给 rax 赋值为 15，并且进行syscall
+就能给所有寄存器赋值到我们想要的值
+顺序参考这个，先恢复r8然后再r9,r10….
+123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051struct _fpstate&#12 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" title="网络编程">网络编程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-11-23T03:56:00.000Z" title="发表于 2024-11-23 11:56:00">2024-11-23</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-12-15T12:52:45.835Z" title="更新于 2024-12-15 20:52:45">2024-12-15</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">网络编程</a></span></div><div class="content">网络编程Visual Studio跨平台因为我是一个Windows选手，VS用惯了，叫我去用别的IDE确实比吃了xx还难受，所以研究了一下如何在Windows桌面端用Visual Studio编译，运行，调试，附加调试Linux的程序
+首先要按照 Visual Studio IDE跨平台编写和调试Linux C&#x2F;C++程序_visual studio跨平台编译-CSDN博客 这篇博客的内容，用ssh协议，让虚拟机和Visual Studio建立连接
+其次，会遇到一个问题，Visual Studio大规模遇到不认识的库，疯狂报错，飘红，但是可以编译成功，这是因为VS还没把库全部拷贝过来，具体要在这里设置，点击更新或者下载即可
+
+还有，记得要以root帐户登录，这样才有足够的权限附加调试
+但是ubuntu默认不能以root帐户登录，具体看这一篇文章 Ubuntu 系统直接使用 root 用户登录实例 - 知乎 
+然后就可以快乐地附加调试了
+
+Linux前置知识主要是为了网络编程的考试
+因为我是一个Windows选手，所以Linux的恶补了下
+Linux下的编译和链接Linux下的 ...</div></div></div><nav id="pagination"><div class="pagination"><span class="page-number current">1</span><a class="page-number" href="/page/2/#content-inner">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/#content-inner">8</a><a class="extend next" rel="next" href="/page/2/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/%E5%85%8D%E6%9D%80/" style="font-size: 1.42em; color: #99a6b7">免杀</a> <a href="/tags/Windows%E5%86%85%E6%A0%B8/" style="font-size: 1.5em; color: #99a9bf">Windows内核</a> <a href="/tags/x86-C-%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">x86 C++逆向分析</a> <a href="/tags/windows%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" style="font-size: 1.18em; color: #999ca1">windows内核网络过滤</a> <a href="/tags/PE/" style="font-size: 1.1em; color: #999">PE</a> <a href="/tags/Minifilter/" style="font-size: 1.1em; color: #999">Minifilter</a> <a href="/tags/FPS%E8%BE%85%E5%8A%A9/" style="font-size: 1.26em; color: #999fa8">FPS辅助</a> <a href="/tags/%E6%97%A0%E6%A8%A1%E5%9D%97%E6%B3%A8%E5%85%A5Dll%E5%99%A8%E9%A1%B9%E7%9B%AE-%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E7%BA%BF%E7%A8%8B%E7%89%88/" style="font-size: 1.1em; color: #999">无模块注入Dll器项目(安全启动线程版)</a> <a href="/tags/MFC%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">MFC逆向分析</a> <a href="/tags/x64%E9%80%86%E5%90%91/" style="font-size: 1.1em; color: #999">x64逆向</a> <a href="/tags/PWN/" style="font-size: 1.1em; color: #999">PWN</a> <a href="/tags/Git%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 1.1em; color: #999">Git的使用</a> <a href="/tags/CE%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 1.1em; color: #999">CE的使用</a> <a href="/tags/x64%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">x64异常分析</a> <a href="/tags/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" style="font-size: 1.18em; color: #999ca1">病毒分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.1em; color: #999">数据库</a> <a href="/tags/%E8%BF%9C%E6%8E%A7%E5%BC%80%E5%8F%91/" style="font-size: 1.1em; color: #999">远控开发</a> <a href="/tags/x86%E4%B8%8B%E7%9A%84c-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" style="font-size: 1.1em; color: #999">x86下的c++异常处理</a> <a href="/tags/WDF%E6%A1%86%E6%9E%B6/" style="font-size: 1.1em; color: #999">WDF框架</a> <a href="/tags/%E6%96%87%E4%BB%B6%E8%BF%87%E6%BB%A4/" style="font-size: 1.1em; color: #999">文件过滤</a> <a href="/tags/QT/" style="font-size: 1.1em; color: #999">QT</a> <a href="/tags/Win-x64%E5%86%85%E6%A0%B8/" style="font-size: 1.34em; color: #99a3b0">Win x64内核</a> <a href="/tags/Hook/" style="font-size: 1.1em; color: #999">Hook</a> <a href="/tags/ETW/" style="font-size: 1.1em; color: #999">ETW</a> <a href="/tags/c/" style="font-size: 1.1em; color: #999">c++</a> <a href="/tags/ARK%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91/" style="font-size: 1.1em; color: #999">ARK工具开发</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" style="font-size: 1.1em; color: #999">网络编程</a> <a href="/tags/ByPassUAC/" style="font-size: 1.1em; color: #999">ByPassUAC</a> <a href="/tags/Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/" style="font-size: 1.1em; color: #999">Windows应急响应</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/01/"><span class="card-archive-list-date">一月 2025</span><span class="card-archive-list-count">4</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/12/"><span class="card-archive-list-date">十二月 2024</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/11/"><span class="card-archive-list-date">十一月 2024</span><span class="card-archive-list-count">8</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/10/"><span class="card-archive-list-date">十月 2024</span><span class="card-archive-list-count">16</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/09/"><span class="card-archive-list-date">九月 2024</span><span class="card-archive-list-count">10</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/08/"><span class="card-archive-list-date">八月 2024</span><span class="card-archive-list-count">10</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/07/"><span class="card-archive-list-date">七月 2024</span><span class="card-archive-list-count">15</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/06/"><span class="card-archive-list-date">六月 2024</span><span class="card-archive-list-count">3</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">71</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-02-05T03:07:27.480Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

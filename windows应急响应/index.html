@@ -1,0 +1,513 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows应急响应(持续更新) | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windows应急响应基本命令：获取Ip地址  ipconfig &#x2F;all: 显示Windows主机的详细IP地址信息，包括IP地址、子网掩码、默认网关等。 ipconfig &#x2F;release: 释放当前网络接口的IP地址。 释放IP地址是指将之前分配给网络接口的IP地址返回给网络，使得该IP地址可以被其他设备使用。  ipconfig &#x2F;flushdns: 清除DNS解析器的缓存。 ipconf">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows应急响应(持续更新)">
+<meta property="og:url" content="http://example.com/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Windows应急响应基本命令：获取Ip地址  ipconfig &#x2F;all: 显示Windows主机的详细IP地址信息，包括IP地址、子网掩码、默认网关等。 ipconfig &#x2F;release: 释放当前网络接口的IP地址。 释放IP地址是指将之前分配给网络接口的IP地址返回给网络，使得该IP地址可以被其他设备使用。  ipconfig &#x2F;flushdns: 清除DNS解析器的缓存。 ipconf">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-11-20T13:35:00.000Z">
+<meta property="article:modified_time" content="2024-11-21T11:48:08.943Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Windows应急响应">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows应急响应(持续更新)',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-11-21 19:48:08'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Windows应急响应(持续更新)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-11-20T13:35:00.000Z" title="发表于 2024-11-20 21:35:00">2024-11-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-11-21T11:48:08.943Z" title="更新于 2024-11-21 19:48:08">2024-11-21</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Windows应急响应(持续更新)"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Windows应急响应"><a href="#Windows应急响应" class="headerlink" title="Windows应急响应"></a>Windows应急响应</h1><h2 id="基本命令："><a href="#基本命令：" class="headerlink" title="基本命令："></a>基本命令：</h2><p><strong>获取Ip地址</strong></p>
+<ul>
+<li><code>ipconfig /all</code>: 显示Windows主机的详细IP地址信息，包括IP地址、子网掩码、默认网关等。</li>
+<li><code>ipconfig /release</code>: 释放当前网络接口的IP地址。 释放IP地址是指将之前分配给网络接口的IP地址返回给网络，使得该IP地址可以被其他设备使用。 </li>
+<li><code>ipconfig /flushdns</code>: 清除DNS解析器的缓存。</li>
+<li><code>ipconfig /renew</code>: 更新网络接口的IP地址。</li>
+</ul>
+<p>&#x2F;all	&#x2F;flushdns 用得比较多</p>
+<p><code>ipconfig</code> 命令主要用于显示本地计算机的网络配置信息，包括本地IP地址（局域网IP）、子网掩码、默认网关等。这些信息对于诊断本地网络问题非常有用，但它们并不直接显示公网IP地址（即外部IP地址），因为公网IP地址是分配给互联网服务提供商（ISP）的路由器的，而不是直接分配给单个计算机的。 可以用搜索引擎在线查看自己的公网IP</p>
+<p><strong>获取端口信息</strong></p>
+<ul>
+<li><p><code>netstat -an</code>: 显示所有端口的开放情况和网络连接状态，包括TCP和UDP端口。</p>
+<p>监听端口是指计算机或服务器上的网络端口，它处于等待状态，准备接受来自其他计算机的连接请求。</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732070741549.png" alt="1732070741549"></p>
+<p> <strong>状态的含义</strong>： </p>
+<ul>
+<li><strong>LISTENING</strong>：表示端口正在监听传入的连接请求。这是服务端端口的常见状态，表示服务正在等待客户端的连接。</li>
+<li><strong>ESTABLISHED</strong>：表示端口已经建立了连接，数据可以在这个连接上传输。</li>
+<li><strong>CLOSE_WAIT</strong>：表示远程主机已经关闭了连接，但本地主机还没有关闭。这可能意味着本地应用程序没有正确地关闭连接。</li>
+<li><strong>TIME_WAIT</strong>：表示连接已经关闭，但端口仍然保留一段时间，以确保所有数据包都已经传输完成。这是TCP连接正常关闭后的一个状态。</li>
+</ul>
+<p>例如</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TCP    <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">54533</span>        <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">61587</span>        ESTABLISHED</span><br></pre></td></tr></table></figure>
+
+<p>以上代表 在本地计算机上，有一个服务或应用程序正在c++使用端口54533，它与本机上的另一个服务或应用程序（使用端口61587）建立了一个TCP连接。这个连接是活动的，可以进行数据传输。由于两个地址都是<code>127.0.0.1</code>，这表明通信是在本地计算机内部进行的，而不是跨越网络的。 </p>
+<p>还有这个：c++</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TCP    <span class="number">100.100</span><span class="number">.1</span><span class="number">.6</span>:<span class="number">59865</span>      <span class="number">23.43</span><span class="number">.50</span><span class="number">.170</span>:<span class="number">443</span>       ESTABLISHED</span><br></pre></td></tr></table></figure>
+
+<p>外网服务器并不是直接与我们的内网IP地址建立连接，而是与我们的公网IP地址建立连接，然后通过NAT技术与我们的内网IP地址通信。这就是为什么我们看到的是内网IP地址与外网服务器建立连接的原因，实际上是通过路由器的公网IP地址进行的</p>
+</li>
+<li><p><code>netstat -ano</code>: 显示所有端口的开放情况，包括TCP&#x2F;UDP协议信息、端口号和进程号。</p>
+</li>
+<li><p><code>netstat -anvb</code>: 显示所有端口的开放情况，包括进程名、进程ID（PID）、端口所用协议、调用的可执行组件以及相应的组件和第三方进程的系统路径。</p>
+</li>
+</ul>
+<p><strong>获取服务信息</strong></p>
+<p>在Windows系统中，很多第三方程序是通过后台服务来运行的。如果攻击者能够获取这些服务的信息，尤其是服务名称，他们可能会利用已知的漏洞来提升权限或进行其他恶意行为。</p>
+<ol>
+<li><strong>关闭安全软件</strong>：获取服务信息还可以帮助攻击者关闭杀毒软件、防火墙或其他安全防护进程，从而降低系统的防御能力。</li>
+<li><strong>查看服务状态</strong>：使用 <code>net start</code> 命令可以查看系统中所有已经启动的服务。这个命令会列出所有当前正在运行的服务，包括它们的名字和状态。</li>
+<li><strong>停止服务</strong>：通过 <code>net stop service_name</code> 命令，可以停止指定的服务。这可能被用于关闭关键的安全服务或系统服务。</li>
+<li><strong>启动服务</strong>：通过 <code>net start service_name</code> 命令，可以启动指定的服务。这可能被用于恢复被关闭的服务，或者启动恶意服务。</li>
+</ol>
+<p><strong>获取进程信息</strong></p>
+<p>通过<code>tasklist /svc</code>命令获取运行的进程名称，服务和PID</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732073347773.png" alt="1732073347773"></p>
+<p>也可以通过	在命令行敲入<code>msinfo32</code>获取更详细的信息</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732073397055.png" alt="1732073397055"></p>
+<p>或者输入到一个文本文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start /wait msinfo32.exe /report <span class="string">&quot;F:\viusal studio document\应急响应\2024-11-20.txt&quot;</span> /categories swenv+SWEnvRunningTasks</span><br></pre></td></tr></table></figure>
+
+<p><strong>命令结构拆解</strong></p>
+<ul>
+<li><p>**<code>start</code>**：用于启动一个新窗口来运行程序或命令。</p>
+</li>
+<li><p><code>/wait</code>：告诉命令提示符等待所启动的程序运行结束后，才返回控制权到当前窗口。</p>
+</li>
+<li><p>msinfo32.exe：Windows的系统信息工具，可以用来收集和显示关于硬件、软件、驱动程序以及其他系统信息的报告。</p>
+</li>
+<li><p>**<code>/report</code>**：指定将系统信息保存为报告文件。</p>
+</li>
+<li><p>路径：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;F:\viusal studio document\应急响应\2024-11-20.txt&quot;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这是报告保存的目标路径。路径中带有空格，需要用双引号括起来。</li>
+</ul>
+</li>
+<li><p>**<code>/categories</code>**：指定要包含在报告中的类别。</p>
+</li>
+<li><p>**<code>swenv</code>**：代表软件环境（Software Environment）。</p>
+</li>
+<li><p><code>SWEnvRunningTasks</code>：代表运行任务（Running Tasks）。</p>
+<ul>
+<li><code>swenv+SWEnvRunningTasks</code>：表示生成的软件环境信息中只包含当前运行的任务。</li>
+</ul>
+</li>
+</ul>
+<p>还要获取其他信息直接用Chatgpt生成对应代码得了</p>
+<p><strong>用户管理命令：</strong></p>
+<p>Windows操作系统中，系统访问通常通过用户命令实现  很多漏洞利用和提权需要获取 <strong>system 权限</strong>，以便添加管理员用户账户到系统中。 </p>
+<p> 用户管理可以通过 <strong>Control面板</strong> 操作，或者**<code>cmd</code>** 命令进行 </p>
+<p>以下记得关闭360等杀软…</p>
+<p><strong>添加用户到管理员组</strong> </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user temp Tt@<span class="comment">#Hh%2019 /add &amp; net localgroup Administrators temp /Add</span></span><br></pre></td></tr></table></figure>
+
+<p> 添加名为 <code>temp</code> 的用户，密码为 <code>Tt@#Hh%2019</code>，并将用户 <code>temp</code> 添加到管理员组。 </p>
+<p><strong>查看系统管理员用户组：</strong> </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net localgroup Administrators</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>加入远程桌面用户组：</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net localgroup &quot;Remote Desktop Users&quot; temp /add</span><br></pre></td></tr></table></figure>
+
+<p>注意： Windows 家庭版不支持 <strong>远程桌面主机功能</strong>，也就是说它不能作为远程桌面的目标被连接。 </p>
+<p><strong>查看用户信息：</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user temp</span><br></pre></td></tr></table></figure>
+
+<p>可以查询到上次登录的时间，还有具体这个用户属于哪些本地用户组</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732089686112.png" alt="1732089686112"></p>
+<p><strong>激活用户</strong> </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user temp /active:yes</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<p>查看本地策略组：</p>
+<p>直接在任务栏搜索：<code>lusrmgr.msc</code>，注意家庭版是没有这个玩意的</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732088355191.png" alt="1732088355191"></p>
+<p><strong>用户管理命令</strong></p>
+<p>修改用户密码：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user [账户] [密码]</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>管理和查看全部用户情况</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<p><strong>查看操作系统进程情况：</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tasklist</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>查看远程目标操作系统的进程情况，目标主机要开启RPC服务</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tasklist /s xxx.xxx.xxx.xxx /u [用户名] /p [密码]</span><br></pre></td></tr></table></figure>
+
+<p><code>比较离奇的是我能连上远程桌面，但是不能使用上面命令，一直说密码错误，我真的....</code></p>
+<p><strong>查看本地系统中某进程调用了某DLL模块文件的具体信息，和远程查看目标主机</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tasklist /m shell32.dll</span><br><span class="line">tasklist /m rundll32.dll /s 192.168.1.6 /u administrator /p root</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>使用筛选器查找指定进程：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">使用筛选器查找指定进程：</span><br><span class="line">tasklist /FI &quot;USERNAME ne NT AUTHORITY\SYSTEM&quot; /FI &quot;STATUS eq running</span><br></pre></td></tr></table></figure>
+
+<p>• 列出系统中正在运行的非“SYSTEM”状态的所有进程：ne：不等于，eq：等于</p>
+<p>Windows自带的终止进程的程序</p>
+<p><strong>taskkill</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">taskkill /im 360tray.exe /f</span><br><span class="line">tasklist | findstr &quot;notepad</span><br><span class="line">taskkill /pid 10924</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><strong>查看操作系统详细配置信息：</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systeminfo</span><br></pre></td></tr></table></figure>
+
+<p>显示本地计算机及其操作系统的详细配置信息，包括：操作系统配置、安全信息、产品ID和硬件属性，如RAM、磁盘空间、网卡和KB补丁信息等。</p>
+<p>查看远程的：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systeminfo /s 192.168.1.6 /u administrator /p root</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<p>whoami 以及 whoami &#x2F;all，查看到当前用户的所有权限和角色的信息。</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732108600608.png" alt="1732108600608"></p>
+<p><strong>局域网内所有连接的主机：</strong></p>
+<p>对应的是网卡的地址</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732108627538.png" alt="1732108627538"></p>
+<p><strong>查询登录本机的所有用户：</strong> </p>
+<p>• query user</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732108719420.png" alt="1732108719420"></p>
+<p> 对于本地用户，通常显示控制台（<code>console</code>）。对于远程桌面用户，显示的是远程连接的终端设备（ rdp-tcp#2 ） </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">C:\&gt; query user</span><br><span class="line"> USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME</span><br><span class="line"><span class="meta prompt_">&gt; </span><span class="language-bash">user1                console             1  Active  none        3/1/2024 12:30 PM</span></span><br><span class="line">  user2                rdp-tcp#2           2  Active  00:15:00    3/1/2024 01:00 PM</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<p>打开Windows管理工具包和组件的常用应急响应命令：</p>
+<p>在Windows应急时，经常出现，诸如各种驱动丢失、系统工具的快捷方式被感染等情况，此时要排查系统问题，需要熟练掌握常用Windows应急命令： </p>
+<p>• （1）<strong>comp</strong>mgmt.msc，计算机管理； </p>
+<p>• （2）<strong>gp</strong>edit.msc，组策略； </p>
+<p>• （3）<strong>services</strong>.msc，管理和查看本地服务设置情况； </p>
+<p>• （4）<strong>control</strong>，打开控制面板； </p>
+<p>• （5）<strong>event</strong>vwr，打开事件查看器（含日志）；可结合利用<strong>Log Parser</strong>日志工具分析Windows的安全日志，查找账户的<strong>登录时间和位置</strong>等信息。 </p>
+<p>• （6）<strong>task</strong>mgr，任务管理器； </p>
+<p>• （7）<strong>sec</strong>pol.msc，本地安全策略； </p>
+<p>• （8）<strong>ms</strong>config，系统配置（含启动项）； </p>
+<p>• （9）<strong>reg</strong>edt32&#x2F;regedit，注册表编辑器； </p>
+<p>• （10）<strong>cert</strong>mgr.msc，证书管理实用程序； </p>
+<p>• （11）<strong>lusr</strong>mgr.msc，本地<strong>用户和用户组</strong>管理器； </p>
+<p>• （12）<strong>task</strong>schd.msc，计划任务管理器。</p>
+<p><strong>检查最近打开的文件</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">%</span><span class="language-bash">UserProfile%\Recent</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732109390627.png" alt="1732109390627"></p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732109397628.png" alt="1732109397628"></p>
+<h2 id="操作系统帐户角色权限："><a href="#操作系统帐户角色权限：" class="headerlink" title="操作系统帐户角色权限："></a>操作系统帐户角色权限：</h2><h3 id="Windows操作系统的帐户"><a href="#Windows操作系统的帐户" class="headerlink" title="Windows操作系统的帐户"></a>Windows操作系统的帐户</h3><p><strong>本地系统帐户：Local System Account</strong></p>
+<p>1.本地系统账户是一个内置的、高权限账户，主要用于支持操作系统的正常运行。 无法直接以系统账户登录计算机，也不能以普通用户的身份直接调用它。只有操作系统核心组件或运行在系统权限下的服务能够使用该账户。系统账户主要用于服务和进程运行时需要完全访问系统资源的场景。<br>例如Smss.exe	Csrss.exe	Lsass.exe	Winlogon.exe等 </p>
+<p>2.系统帐户，是内部帐户，不显示在用户管理器（lusrmgr.msc）中，不能添加到任何组，并且不能把用户权限分配给它</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732151927904.png" alt="1732151927904"></p>
+<p>3.系统帐户上NTFS文件系统卷的文件管理，在安全性（security）菜单的权限部分中显示</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732151985512.png" alt="1732151985512"></p>
+<p>4.默认，系统帐户授予对NTFS卷上所有文件的完全控制</p>
+<ol start="5">
+<li>运行在本地系统帐户中的服务可以通过利用其计算机帐户，在同一个域林中的其他机器上自动获得身份认证。</li>
+</ol>
+<p><strong>本地管理员帐户：Local Administrator Account</strong></p>
+<p>管理员帐户（管理员组）和系统帐户有相同的文件权限，但他们具有相同的文件权限</p>
+<p><strong>网络服务帐户：</strong>network service account</p>
+<p>1.用来供给给，既希望利用计算机帐户来向网络上其他机器认证身份，但是，又不需要Administrator组的所属权，这样的服务身份来呗使用</p>
+<p>2.只能访问少量的注册表键，文件夹和文件</p>
+<p>3.赋予少量特权，限制能力范围，不可以加载设备驱动或者打开任意进程</p>
+<p><strong>本地服务帐户：</strong>local service account</p>
+<p>非常低的权限，仅够访问本地资源，类似于普通用户。 主要用途： 用于运行不需要访问远程网络资源的服务。 例如本地打印机后台处理程序</p>
+<p>它们的能力和权限，都比系统帐户少</p>
+<p>不要求本地系统帐户能力和权限的Windows内置服务，都需要运行在适当的服务帐户下。</p>
+<p>提权操作：原来是用本地服务帐户登录的</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732152578729.png" alt="1732152578729"></p>
+<p>可以选择用本地系统帐户登录，相当于提权（但是万一被攻破了，Hacker拿到的就是System权限）</p>
+<h3 id="Windows操作系统的角色"><a href="#Windows操作系统的角色" class="headerlink" title="Windows操作系统的角色"></a>Windows操作系统的角色</h3><p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732153664851.png" alt="1732153664851"></p>
+<ol>
+<li><strong>Administrators</strong>：管理员，拥有对计算机或域的完全不受限制的访问权限。</li>
+<li><strong>Users</strong>：普通用户，设计用来防止用户进行有意或无意的系统范围的更改，但允许运行大部分应用程序。</li>
+<li><strong>Guests</strong>：来宾访客，拥有与用户组成员同等的访问权限，但来宾账户的限制更多。</li>
+<li><strong>Hyper-V Administrators</strong>：虚拟化管理员，拥有对Hyper-V所有功能的完全且不受限制的访问权限。</li>
+<li><strong>IIS_IUSRS</strong>：Web服务，用于Internet信息服务的内置组。</li>
+<li><strong>Power Users</strong>：超级管理员，包括高级用户以向下兼容，拥有有限的管理权限。</li>
+<li><strong>Remote Desktop Users</strong>：远程桌面使用，被授予远程登录的权限。</li>
+<li><strong>Performance Monitor Users</strong>：性能监视，可以从本地和远程访问性能计数器数据。</li>
+</ol>
+<h3 id="Windows操作系统的权限"><a href="#Windows操作系统的权限" class="headerlink" title="Windows操作系统的权限"></a>Windows操作系统的权限</h3><ul>
+<li><strong>安全标识符</strong> :每个用户和系统实体，用于信任决策，都被赋予一个SID。</li>
+<li><strong>访问令牌</strong>: 用于验证用户身份和权限的令牌。	</li>
+<li><strong>安全描述符</strong>: 描述对象的安全信息，包括所有权和访问控制列表。</li>
+<li><strong>访问控制管理 (权限)</strong>: 管理系统中对象的访问权限。</li>
+<li><strong>特权</strong>: 提供额外权限的特殊权利</li>
+</ul>
+<p><strong>安全标识符 (SID)</strong></p>
+<ul>
+<li><strong>定义</strong>: 每个用户和系统实体，用于信任决策，都被赋予一个SID。</li>
+<li><strong>唯一性</strong>: SID是唯一的，并且有多种不同的形式，贯穿实体的整个生命周期。</li>
+<li><strong>标识方式</strong>: Windows使用SID而不是账户名称来全局标识用户。</li>
+<li><strong>应用范围</strong>: 用户、用户组、域用户组、本地计算机、域、域成员、服务等都有SID。</li>
+<li><strong>长度和格式</strong>: SID的长度可变，格式为<code>S-Revision Level-Authority Value-Relative Identifier</code>。</li>
+</ul>
+<p>SID格式详解</p>
+<ul>
+<li><strong>Revision Level</strong>: 结构版本号，用于标识SID的版本。</li>
+<li><strong>Authority Value</strong>: 48位，标识符机构值，用于识别颁发SID的机构。</li>
+<li><strong>Relative Identifier</strong>: 可变数量的32位子机构值或相对标识符，用于进一步区分SID。</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\xxxx&gt;wmic useraccount get name,sid</span><br><span class="line">Name                SID</span><br><span class="line">Administrator       S-1-5-21-3612690340-2046312669-3754059946-500</span><br><span class="line">DefaultAccount      S-1-5-21-3612690340-2046312669-3754059946-503</span><br><span class="line">Guest               S-1-5-21-3612690340-2046312669-3754059946-501</span><br><span class="line">xxx                 S-1-5-21-3612690340-2046312669-3754059946-1000</span><br><span class="line">temp                S-1-5-21-3612690340-2046312669-3754059946-1001</span><br><span class="line">WDAGUtilityAccount  S-1-5-21-3612690340-2046312669-3754059946-504</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">whoami -all:</span><br><span class="line">Everyone                               已知组 S-1-1-0      必需的组, 启用于默认, 启用的组</span><br><span class="line">NT AUTHORITY\本地帐户和管理员组成员    已知组 S-1-5-114    只用于拒绝的组</span><br><span class="line">BUILTIN\Administrators                 别名   S-1-5-32-544 只用于拒绝的组</span><br><span class="line">BUILTIN\Users                          别名   S-1-5-32-545 必需的组, 启用于默认, 启用的组</span><br><span class="line">NT AUTHORITY\INTERACTIVE               已知组 S-1-5-4      必需的组, 启用于默认, 启用的组</span><br><span class="line">CONSOLE LOGON                          已知组 S-1-2-1      必需的组, 启用于默认, 启用的组</span><br><span class="line">NT AUTHORITY\Authenticated Users       已知组 S-1-5-11     必需的组, 启用于默认, 启用的组</span><br><span class="line">NT AUTHORITY\This Organization         已知组 S-1-5-15     必需的组, 启用于默认, 启用的组</span><br><span class="line">NT AUTHORITY\本地帐户                  已知组 S-1-5-113    必需的组, 启用于默认, 启用的组</span><br><span class="line">LOCAL                                  已知组 S-1-2-0      必需的组, 启用于默认, 启用的组</span><br><span class="line">NT AUTHORITY\NTLM Authentication       已知组 S-1-5-64-10  必需的组, 启用于默认, 启用的组</span><br><span class="line">Mandatory Label\Medium Mandatory Level 标签   S-1-16-8192</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+<p><strong>访问令牌的组成</strong></p>
+<ol>
+<li><strong>用户帐号SID</strong>：标识特定用户的安全标识符，用于验证用户身份。</li>
+<li><strong>所属组SID</strong>：用户所属的所有安全组的SID，这些组的权限会累加到用户账户上。</li>
+<li><strong>会话SID</strong>：标识当前登录会话的SID，用于区分不同的登录会话。</li>
+<li><strong>权限列表</strong>：用户或其对应用户组所拥有的权限列表，包括对文件、注册表、进程等资源的访问权限。</li>
+<li><strong>权限或组成员身份的限制</strong>：对用户权限或组成员身份的限制条件，这些条件可以进一步细化权限的分配。</li>
+<li><strong>低权限运行标志</strong>：支持以较低权限身份运行的标志，这有助于提高系统的安全性，防止恶意软件获取过高的权限。</li>
+</ol>
+<p><strong>访问令牌的作用：</strong></p>
+<ul>
+<li><strong>身份验证</strong>：验证用户身份，确保只有授权用户才能访问系统资源。</li>
+<li><strong>权限控制</strong>：控制用户对系统资源的访问权限，如文件、注册表、进程等。</li>
+<li><strong>安全隔离</strong>：通过不同的SID和权限设置，实现不同用户和组之间的安全隔离。</li>
+<li><strong>会话管理</strong>：管理用户的登录会话，确保会话的安全性和完整性。</li>
+</ul>
+<p>打开Process Explore，双击某一行，转到Security，可以查看一个程序的安全属性</p>
+<p>可以看BUILTIN后面跟着是哪个组，比如这个DWM-1就是属于Users组的</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732155176163.png" alt="1732155176163"></p>
+<p>当你看到进程（比如 <strong>dwm.exe</strong>）没有 <code>BUILTIN\Administrators Deny</code> 的标识时，实际上这意味着 <strong>dwm.exe</strong> 在当前的执行上下文下并没有直接受到来自该组的拒绝权限。也就是说它并没有显式地请求或要求以管理员身份运行。 </p>
+<p> <a target="_blank" rel="noopener" href="https://www.cnblogs.com/cdaniu/p/15630284.html">【windows 访问控制】三、访问控制列表 ACL&#x3D;DACL+SACL - 小林野夫 - 博客园</a> </p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732181931440.png" alt="1732181931440"></p>
+<p><strong>安全描述符</strong>: 描述对象的安全信息，包括所有权和访问控制列表。</p>
+<p>安全描述符由以下几个部分组成：</p>
+<p>a. 所有者</p>
+<ul>
+<li><strong>定义</strong>: 所有者是对象的拥有者，拥有对对象的最高权限，包括修改对象的权限和安全描述符本身。</li>
+<li><strong>权限</strong>: 所有者可以更改对象的权限设置，包括添加或删除访问控制列表（ACL）。</li>
+</ul>
+<p>b. 自主访问控制列表</p>
+<ul>
+<li><p><strong>定义</strong>: 定义了哪些用户或组可以访问对象，以及他们可以执行的操作（如读取、写入、执行等）。</p>
+</li>
+<li><p><strong>访问控制项（Access Control Entries, ACE）</strong>: DACL由一系列的ACE组成，每个ACE指定一个用户或组的访问权限。ACE可以是允许（Allow）或拒绝（Deny）访问的规则。</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732159064428.png" alt="1732159064428"></p>
+</li>
+<li><p><strong>权限冲突</strong>:<br><strong>允许权限累积</strong>：如果一个用户属于多个组，且这些组的权限都是 <strong>允许</strong> 访问某个资源（如文件夹），那么这些允许权限会被累积。例如，属于 <code>Administrators</code> 组和 <code>Users</code> 组的用户，<code>Administrators</code> 组允许修改文件，<code>Users</code> 组允许读取文件，那么最终该用户就既可以读取也可以修改文件。</p>
+<p><strong>拒绝权限优先</strong>：<strong>如果存在显式的拒绝权限</strong>，那么拒绝权限会覆盖所有允许权限。即便该用户属于其他组，并且这些组有权限访问资源，**”拒绝” 权限始终优先**。例如，如果 <code>Everyone</code> 组的权限设置为拒绝访问某个文件，而该用户属于 <code>Administrators</code> 组，并且 <code>Administrators</code> 组允许访问该文件，那么最终该用户会被拒绝访问，因为 <strong>拒绝权限优先</strong>。</p>
+</li>
+</ul>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732158822103.png" alt="1732158822103"></p>
+<p>用<code>icacls</code>命令查看权限</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732159193925.png" alt="1732159193925"></p>
+<p>如果是拒绝写，会是这样：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\example\file.txt BUILTIN\Users:(DENY)(W)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>c. 系统访问控制列表</p>
+<ul>
+<li><strong>定义</strong>: SACL用于定义哪些安全事件（如访问尝试、更改等）应该被记录在安全审计日志中。</li>
+<li><strong>审计</strong>: SACL允许系统管理员监控和记录对对象的访问和更改，这对于安全分析和合规性检查非常重要。</li>
+</ul>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732189317816.png" alt="1732189317816"></p>
+<p>有个小插曲</p>
+<p>我把一个exe的权限users组只给了读取和写入，结果发现右键管理员启动不了，甚至不会弹UAC，也就是不会获取到管理员权限（我是在user）,但是管理员启动的cmd可以启动这个程序</p>
+<p>应该是因为 在这种情况下，尽管你右键点击并选择“以管理员身份运行”，操作系统并不会执行程序，因为它认为该程序本身可能没有执行权限，导致没有弹出 UAC。  如果 <strong>当前用户的组</strong> （例如 <code>Users</code> 或其他组）的权限不足以读取和执行文件，操作系统可能不会尝试提升权限去启动程序。 </p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732162900751.png" alt="1732162900751"></p>
+<p>不过加一个读取和执行的权限，就可以执行，也就可以申请到管理员执行</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732163075115.png" alt="1732163075115"></p>
+<p>用户权限的分配：<code>secpol.msc</code>，本地安全策略分配</p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732181171196.png" alt="1732181171196"></p>
+<p>可以看到这里有一个调试程序的策略，里面只有<code>Administrators</code>组</p>
+<p>“调试程序”策略（Debug Programs）是针对<strong>所有运行的进程</strong>，尤其是高权限的进程，如 <strong>System 权限进程</strong> 和 <strong>Administrator 权限进程</strong>。</p>
+<p>如果是同级，例如你是Users组内的调试器，那么不用在调试程序这个策略，也可以调试同样在Users组内的程序</p>
+<p><strong>特权</strong></p>
+<p><img src="/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/1732189673428.png" alt="1732189673428"></p>
+<p>容易被滥用的特权</p>
+<p><strong>SeBackupPrivilege</strong></p>
+<p>描述：该特权导致拥有对所有文件的读访问权限，无视文件的访问控制链表（ACL）。 </p>
+<p>• 攻击情景：搜集</p>
+<p><strong>SeCreateTokenPrivilege</strong></p>
+<p>描述：请求创建一个主令牌 </p>
+<p>• 攻击情景：特权提升</p>
+<p><strong>SeDebugPrivilege</strong></p>
+<p>描述：通过任意账户请求调试和调整某个进程拥有的内存 </p>
+<p>• 攻击情景：特权提升；防护逃逸；凭据窃取</p>
+<p><strong>SeLoadDriverPrivilege</strong></p>
+<p>描述：请求加载或卸载一个设备驱动。 </p>
+<p>• 攻击情景：渗透；防护逃逸</p>
+<p><strong>SeRestorePribilege</strong></p>
+<p>描述：请求执行恢复操作。该特权使得系统授权对任意文件的写访问，无视文件的ACL。 </p>
+<p>• 攻击情景：渗透；防护逃逸</p>
+<p><strong>SeTakeOwershipPrivilege</strong> </p>
+<p>• 描述：无需授予任意访问权限，获得某个对象的拥有权。 </p>
+<p>• 攻击情景：渗透；防护逃逸；搜集</p>
+<p><strong>SeTcbPrivilege</strong> </p>
+<p>• 描述：表示它的持有者是可信计算基的一部分。一些被可信计算保护的子系统被授予这个权限。 </p>
+<p>• 攻击情景：特权提升</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/">http://example.com/windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/">Windows应急响应</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/Ark%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91/" title="ARK工具开发(持续更新)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">ARK工具开发(持续更新)</div></div></a></div><div class="next-post pull-right"><a href="/Minifilter/" title="Minifilter(nullfilter,scanner,sandbox)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Minifilter(nullfilter,scanner,sandbox)</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94"><span class="toc-number">1.</span> <span class="toc-text">Windows应急响应</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">基本命令：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%B8%90%E6%88%B7%E8%A7%92%E8%89%B2%E6%9D%83%E9%99%90%EF%BC%9A"><span class="toc-number">1.2.</span> <span class="toc-text">操作系统帐户角色权限：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Windows%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%B8%90%E6%88%B7"><span class="toc-number">1.2.1.</span> <span class="toc-text">Windows操作系统的帐户</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Windows%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">1.2.2.</span> <span class="toc-text">Windows操作系统的角色</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Windows%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%9D%83%E9%99%90"><span class="toc-number">1.2.3.</span> <span class="toc-text">Windows操作系统的权限</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

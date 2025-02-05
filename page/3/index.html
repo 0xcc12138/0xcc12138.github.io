@@ -1,0 +1,232 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="Cc12138&#39;s blog">
+<meta property="og:url" content="http://example.com/page/3/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:author" content="Ccai">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/page/3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Cc12138\'s blog',
+  isPost: false,
+  isHome: true,
+  isHighlightShrink: false,
+  isToc: false,
+  postUpdate: '2025-02-05 11:07:28'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="site-info"><h1 id="site-title">Cc12138's blog</h1><div id="site_social_icons"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/C++%E6%96%B0%E7%89%B9%E6%80%A7/" title="C++新特性">C++新特性</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-24T14:53:00.000Z" title="发表于 2024-10-24 22:53:00">2024-10-24</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-24T14:53:00.000Z" title="更新于 2024-10-24 22:53:00">2024-10-24</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/c/">c++</a></span></div><div class="content">C++新特性多嘴一句，vs中自动对齐代码：选中需要调整格式的内容（可用CTRL+A），然后再按Ctrl + K 和Ctrl + F 就好了 
+一：auto&#x2F;decltype1. auto：自动类型推导auto关键字允许编译器自动推导变量的类型，特别是在初始化时，编译器可以根据右侧的表达式确定变量的类型。这在处理复杂类型时非常有用，比如模板、迭代器等。
+优点
+
+简化代码：尤其是在使用长或复杂类型时，不再需要手动写出类型。
+增强可读性：通过减少冗长的类型声明，代码变得更加简洁明了。
+避免错误：可以减少在手动写类型时出现的错误。
+
+2.decltype：获取表达式的类型decltype关键字用于从表达式中获取类型。这对于需要获取某个变量或表达式的精确类型时非常有用。 
+特点
+
+类型推导：decltype可以从表达式、变量、函数调用等推导出其类型。
+与auto配合：decltype常与auto配合使用来解决复杂类型推导的问题。
+精确性：decltype可以返回表达式的精确类型，包括引用类型或指针类型。
+
+代码示例：1234567891011#include &lt;iostream& ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/PPID%E6%94%BB%E4%B8%8E%E9%98%B2/" title="PPID的攻与防">PPID的攻与防</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-23T08:09:00.000Z" title="发表于 2024-10-23 16:09:00">2024-10-23</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-23T08:09:00.000Z" title="更新于 2024-10-23 16:09:00">2024-10-23</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a></span></div><div class="content">PPID Spoofing(父进程欺骗)主要参考文章： 奇安信攻防社区-Parent Process ID (PPID) Spoofing 
+PPID Spoofing介绍PPID Spoofing（父进程ID欺骗）的原理是通过操控新进程的父进程ID，使其看起来是由另一个指定的进程创建的，而不是实际创建它的进程。这种技术可以用来隐藏恶意行为或混淆分析，避免安全软件的检测，因为某些安全工具可能通过监控父子进程关系来检测恶意软件。 
+PPID Spoofing 的操作方式： 在PPID欺骗中，通过使用扩展启动信息（STARTUPINFOEXA）结构，并修改其属性列表（ProcThreadAttributeList），可以在进程创建时指定一个自定义的父进程，而不是默认的创建进程。这通过在创建新进程时，将另一个合法进程的句柄传递给CreateProcess函数来实现。 
+PPID Spoofing实现代码先看一个代码：这个代码的主要功能是在一个指定的父进程下创建一个notepad子进程，通过CreateProcessA来实现，并使用扩展启动信息STARTUPINFOEXA来指定父进程。 
+12 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/%E6%B7%BB%E5%8A%A0%E8%AF%A6%E7%BB%86%E4%BF%A1%E6%81%AF,%E8%87%AA%E7%AD%BE%E5%90%8D%E8%BF%87360/" title="详细信息，自签名过360">详细信息，自签名过360</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-18T14:25:00.000Z" title="发表于 2024-10-18 22:25:00">2024-10-18</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-18T14:25:00.000Z" title="更新于 2024-10-18 22:25:00">2024-10-18</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a></span></div><div class="content">详细信息，自签名过360的QVMQVM是360人工智能的一个引擎检测，QVM误报率会比较高一点，360说它是基于一个统计学的算法，类似于特征库？
+我们用CS生成一段Shellcode，用以下Loader加载一下：
+123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102#include &lt;iostream&gt;#include &lt;windows.h&gt;using namespace std;extern &quot;C&quot; SIZE_T GetKernel32();int my_strcmp(const char* str1, const char* str2) &#123;    while (*str1 != &#x27; ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/Cobalt_Strike/" title="Cobalt Strike（持续更新）">Cobalt Strike（持续更新）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-16T04:42:00.000Z" title="发表于 2024-10-16 12:42:00">2024-10-16</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-11-04T14:22:35.517Z" title="更新于 2024-11-04 22:22:35">2024-11-04</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a></span></div><div class="content">Cobalt Strike一些概念Cobalt Strike简称cs，是一款渗透神器，主要用团队作战，由一个服务端和多个客户端组成，能让多个攻击者同时连接到团队服务器上，共享攻击资源与目标信息。是一款GUI的框架式渗透工具，集成了端口转发、服务扫描，自动化溢出，多模式端口监听，win exe木马生成，win dll木马生成，java木马生成，office宏病毒生成，木马捆绑；钓鱼攻击包括：站点克隆，目标信息获取，java执行，浏览器自动攻击等等。 
+关于Beacon 深入了解 Beacon 种类及其原理 - 先知社区 (aliyun.com) 
+Beacon 是 Cobalt Strike 运行在目标主机上的 Payload ，我们可以将它视为 “窃听器” ，可以配合各种方式（可执行文件、Word 文档、目标主机上的漏洞）最终组成一个我们熟悉的名词 —— 木马，最终送达到目标主机上，长期的控制它 
+
+Cobalt Strike安装及beacon上线参考这篇文章：
+ 红队内网渗透神器–CobaltStrike安装教程-CSDN博客 
+下载下来以后是这个界面
+
+首先我们要先运行下teams ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/PPL%20Attack/" title="PPL Attack">PPL Attack</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-15T12:28:00.000Z" title="发表于 2024-10-15 20:28:00">2024-10-15</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-15T12:28:00.000Z" title="更新于 2024-10-15 20:28:00">2024-10-15</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a></span></div><div class="content">PPL Attackwin10配置双机调试： [Win10双机调试(Windbg+VMware+Win10LTSC) - DarkBright - 博客园 (cnblogs.com)](https://www.cnblogs.com/DarkBright/p/10843698.html#:~:text=打开 Windbg ，设置挂接选项： 设置完毕点击OK之后，虚拟系统选择,Debug 选项启动，Windbg成功中断： 双机调试配置成功，可以在命令窗口输入命令控制虚拟机里面的Win10系统 0x04 Windbg的简单使用：) 
+PPL保护介绍Windows 的 PPL（Protected Process Light，受保护的进程 Light）是一种安全机制，用于保护关键系统进程和受信任的程序免受恶意软件的篡改和攻击。它通过限制对受保护进程的访问来实现这一点，即使是管理员用户也无法随意修改或终止这些进程。 
+mimikatz 的 sekurlsa::logonpasswords 指令用于从 Windows 操作系统的内存中提取明文密码、哈希值、PIN 码和 Kerberos 票据等凭据 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/UAC/" title="uac白名单挖掘">uac白名单挖掘</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-12T12:06:00.000Z" title="发表于 2024-10-12 20:06:00">2024-10-12</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-12T12:06:00.000Z" title="更新于 2024-10-12 20:06:00">2024-10-12</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a></span></div><div class="content">uac白名单挖掘UAC介绍用户帐户控制(User Account Control)是Windows Vista（及更高版本操作系统）中一组新的基础结构技术，可以帮助阻止恶意程序（有时也称为“恶意软件”）损坏系统，同时也可以帮助组织部署更易于管理 的平台
+使用UAC，应用程序和任务总是在非管理员帐户的安全上下文中运行，但管理员专门给系统授予管理员级别的访问权限时除外。UAC会阻止未经授权应用程序的自动安装，防止无意中对系统设置进行更改 
+一句话来说，就是分权限了，有些操作必须保证当前用户具有某个权限才能成功
+查看令牌权限查看用户的令牌权限：
+1whoami /priv
+
+输出会列出当前用户的拥有的所有权限（Privileges），包括权限的名称和当前状态（启用或禁用）。 
+例如我去查看管理员权限（cmd窗口我用管理员模式打开的）
+
+这是普通用户的权限：
+普通用户是无法通过 API 直接获取或启用 SeDebugPrivilege 等高权限特权的。 只有是管理员账户的时候，才能通过API去提升自己的权限
+一些权限的解释：
+**SeDebugPrivilege**：允许调试和访问系统中的所有 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/Windows%E6%B6%88%E6%81%AF%E9%92%A9%E5%AD%90/" title="Windows消息钩子">Windows消息钩子</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-10T13:33:00.000Z" title="发表于 2024-10-10 21:33:00">2024-10-10</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-19T06:52:36.201Z" title="更新于 2025-01-19 14:52:36">2025-01-19</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/Hook/">Hook</a></span></div><div class="content">Windows消息钩子API介绍SetWindowsHookEx 是 Windows API 中用于安装挂钩（Hook）的函数，它允许一个应用程序在特定事件发生时拦截系统消息或输入（例如键盘、鼠标输入），并对其进行处理。通常用于捕获、监控或修改应用程序中的消息流。 
+123456HHOOK SetWindowsHookEx(  int idHook,        // 挂钩类型  HOOKPROC lpfn,     // 挂钩回调函数  HINSTANCE hMod,    // 应用程序或DLL实例句柄  DWORD dwThreadId   // 线程标识符);
+
+参数解释：
+idHook （挂钩类型）： 表示要安装的挂钩类型，它决定了系统在什么事件发生时调用钩子函数。常见的挂钩类型有：
+WH_KEYBOARD: 捕获键盘消息（不区分按键的目标窗口）。
+WH_KEYBOARD_LL: 捕获低级别的全局键盘消息，可以用于记录按键等。
+WH_MOUSE: 捕获鼠标消息。
+WH_MOUSE_LL: 捕获低级别的全局鼠标消息。
+WH_CALLWNDPROC: 监控发送给目标窗口的消息。 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/%E9%A9%B1%E5%8A%A8%E6%A3%80%E6%B5%8BShellcode%E6%B3%A8%E5%85%A5%E9%A1%B9%E7%9B%AE/" title="驱动检测Shellcode注入项目">驱动检测Shellcode注入项目</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-07T13:37:00.000Z" title="发表于 2024-10-07 21:37:00">2024-10-07</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-07T13:37:00.000Z" title="更新于 2024-10-07 21:37:00">2024-10-07</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a></span></div><div class="content">驱动检测Shellcode注入项目本项目在Win7 x64完美运行，如果发现运行不了，可能是偏移问题，自行在源码上更改即可。
+项目地址： 0xcc12138&#x2F;Shellcode_hunter: 一种能够实时监控是否有疑似Shellcode执行的软件 (github.com) 
+项目作用主要监测是否有疑似Shellcode注入后，启动CreateThread或者远程CreateRemoteThread执行注入的Shellcode代码
+原理：注入Shellcode后，一般需要起线程去执行这个Shellcode，那么这时候我们通过设置一个创建线程回调函数PsSetCreateThreadNotifyRoutine，在线程开启，执行之前抢先收到消息
+在线程创建例程里面，我们通过参数Pid可以知道是否是我们需要监控的进程，一旦确定，就Attach上该进程去遍历它的Vad树。
+我们知道，VirtualAlloc出来的地址是Private属性，并且是要具有Excute（可执行属性的），因此我们去从Vad树遍历到区段，然后就可以进行判断疑似Shellcode的执行
+比如本项目就是如果发现有疑 ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/VAD%E6%A0%91/" title="免杀——VAD树">免杀——VAD树</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-05T15:32:00.000Z" title="发表于 2024-10-05 23:32:00">2024-10-05</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-05T15:32:00.000Z" title="更新于 2024-10-05 23:32:00">2024-10-05</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a></span></div><div class="content">VAD树前面说的进程隐藏，模块隐藏
+但是这个是骗不了例如PCHunter这种软件的
+这是因为这种软件用了别的方法去遍历进程和模块
+Vad树介绍 VAD（Virtual Address Descriptor）树是Windows操作系统用来管理进程的虚拟内存区域（memory regions）的一种数据结构。它以平衡二叉树（通常是自平衡的AVL树）的形式存在，存储了一个进程中所有的虚拟地址范围（内存区域）。这些虚拟地址区域包含了进程所使用的内存，比如模块加载的内存、堆、栈等。 
+为了隐藏进程，常见的技术就是断开活动进程链 ，虽然这种方法能够从用户态视角隐藏进程，但它并没有改变内存管理系统和其他内核结构中的信息，进程仍然在系统的其他地方可见。 
+每一个进程（EPROCESS）都有Vadroot结构，这保存着Vad树的根节点
+
+用windbg可以自动解析Vad树
+1!vad [addr]
+
+
+关于内存的Private，Mapped属性我们可以看到，解析出来的属性里面，内存类别有Mapped，还有Private，只是什么东西？
+在windows内存管理里面，只有两种属性，分别是 Private  ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/%E7%BA%BF%E7%A8%8B%E8%BF%9B%E7%A8%8B%E9%9A%90%E8%97%8F/" title="免杀——线程进程隐藏">免杀——线程进程隐藏</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-05T07:32:00.000Z" title="发表于 2024-10-05 15:32:00">2024-10-05</time><span class="article-meta-separator">|</span><i class="fas fa-history"></i><span class="article-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-05T07:32:00.000Z" title="更新于 2024-10-05 15:32:00">2024-10-05</time></span><span class="article-meta tags"><span class="article-meta-separator">|</span><i class="fas fa-tag"></i><a class="article-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a></span></div><div class="content">线程进程隐藏三环TEB&#x2F;PEBx64下，每个线程都有一个TEB结构来存储线程的一些属性结构，gs:[0x30]寄存器在ring3指向TEB结构，
+在0x60的偏移，有一个_PEB结构，PEB就是进程用来记录自己信息的一个结构
+
+在PEB +0x18的位置有一个_PEB_LDR_DATA结构
+
+就会发现有三个链表
+
+链表是这个结构，可以通过这三个链表，遍历到所有模块
+
+因此我们就可以在三环断链来隐藏模块
+我们知道如果要枚举模块一般都是使 用 CreateToolhelp32Snapshot 拍摄快照，然后找到模块列表之后进行遍历，其实api也是通过找 _PEB_LDR_DATA 这个结构来获取程序有哪些模块，那么我们如果想隐藏某个dll，就可以通过修改这几 个双向链表的方法来进行隐藏
+三环断链代码12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576 ...</div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/2/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#content-inner">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/#content-inner">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/#content-inner">8</a><a class="extend next" rel="next" href="/page/4/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/%E5%85%8D%E6%9D%80/" style="font-size: 1.42em; color: #99a6b7">免杀</a> <a href="/tags/Windows%E5%86%85%E6%A0%B8/" style="font-size: 1.5em; color: #99a9bf">Windows内核</a> <a href="/tags/x86-C-%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">x86 C++逆向分析</a> <a href="/tags/windows%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" style="font-size: 1.18em; color: #999ca1">windows内核网络过滤</a> <a href="/tags/PE/" style="font-size: 1.1em; color: #999">PE</a> <a href="/tags/Minifilter/" style="font-size: 1.1em; color: #999">Minifilter</a> <a href="/tags/FPS%E8%BE%85%E5%8A%A9/" style="font-size: 1.26em; color: #999fa8">FPS辅助</a> <a href="/tags/%E6%97%A0%E6%A8%A1%E5%9D%97%E6%B3%A8%E5%85%A5Dll%E5%99%A8%E9%A1%B9%E7%9B%AE-%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E7%BA%BF%E7%A8%8B%E7%89%88/" style="font-size: 1.1em; color: #999">无模块注入Dll器项目(安全启动线程版)</a> <a href="/tags/MFC%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">MFC逆向分析</a> <a href="/tags/x64%E9%80%86%E5%90%91/" style="font-size: 1.1em; color: #999">x64逆向</a> <a href="/tags/PWN/" style="font-size: 1.1em; color: #999">PWN</a> <a href="/tags/Git%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 1.1em; color: #999">Git的使用</a> <a href="/tags/CE%E7%9A%84%E4%BD%BF%E7%94%A8/" style="font-size: 1.1em; color: #999">CE的使用</a> <a href="/tags/x64%E5%BC%82%E5%B8%B8%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">x64异常分析</a> <a href="/tags/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" style="font-size: 1.18em; color: #999ca1">病毒分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.1em; color: #999">数据库</a> <a href="/tags/%E8%BF%9C%E6%8E%A7%E5%BC%80%E5%8F%91/" style="font-size: 1.1em; color: #999">远控开发</a> <a href="/tags/x86%E4%B8%8B%E7%9A%84c-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" style="font-size: 1.1em; color: #999">x86下的c++异常处理</a> <a href="/tags/WDF%E6%A1%86%E6%9E%B6/" style="font-size: 1.1em; color: #999">WDF框架</a> <a href="/tags/%E6%96%87%E4%BB%B6%E8%BF%87%E6%BB%A4/" style="font-size: 1.1em; color: #999">文件过滤</a> <a href="/tags/QT/" style="font-size: 1.1em; color: #999">QT</a> <a href="/tags/Win-x64%E5%86%85%E6%A0%B8/" style="font-size: 1.34em; color: #99a3b0">Win x64内核</a> <a href="/tags/Hook/" style="font-size: 1.1em; color: #999">Hook</a> <a href="/tags/ETW/" style="font-size: 1.1em; color: #999">ETW</a> <a href="/tags/c/" style="font-size: 1.1em; color: #999">c++</a> <a href="/tags/ARK%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91/" style="font-size: 1.1em; color: #999">ARK工具开发</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" style="font-size: 1.1em; color: #999">网络编程</a> <a href="/tags/ByPassUAC/" style="font-size: 1.1em; color: #999">ByPassUAC</a> <a href="/tags/Windows%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/" style="font-size: 1.1em; color: #999">Windows应急响应</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/01/"><span class="card-archive-list-date">一月 2025</span><span class="card-archive-list-count">4</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/12/"><span class="card-archive-list-date">十二月 2024</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/11/"><span class="card-archive-list-date">十一月 2024</span><span class="card-archive-list-count">8</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/10/"><span class="card-archive-list-date">十月 2024</span><span class="card-archive-list-count">16</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/09/"><span class="card-archive-list-date">九月 2024</span><span class="card-archive-list-count">10</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/08/"><span class="card-archive-list-date">八月 2024</span><span class="card-archive-list-count">10</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/07/"><span class="card-archive-list-date">七月 2024</span><span class="card-archive-list-count">15</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/06/"><span class="card-archive-list-date">六月 2024</span><span class="card-archive-list-count">3</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">71</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-02-05T03:07:27.480Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

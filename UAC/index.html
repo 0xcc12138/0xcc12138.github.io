@@ -1,0 +1,231 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>uac白名单挖掘 | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="uac白名单挖掘UAC介绍用户帐户控制(User Account Control)是Windows Vista（及更高版本操作系统）中一组新的基础结构技术，可以帮助阻止恶意程序（有时也称为“恶意软件”）损坏系统，同时也可以帮助组织部署更易于管理 的平台 使用UAC，应用程序和任务总是在非管理员帐户的安全上下文中运行，但管理员专门给系统授予管理员级别的访问权限时除外。UAC会阻止未经授权应用程序的自">
+<meta property="og:type" content="article">
+<meta property="og:title" content="uac白名单挖掘">
+<meta property="og:url" content="http://example.com/UAC/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="uac白名单挖掘UAC介绍用户帐户控制(User Account Control)是Windows Vista（及更高版本操作系统）中一组新的基础结构技术，可以帮助阻止恶意程序（有时也称为“恶意软件”）损坏系统，同时也可以帮助组织部署更易于管理 的平台 使用UAC，应用程序和任务总是在非管理员帐户的安全上下文中运行，但管理员专门给系统授予管理员级别的访问权限时除外。UAC会阻止未经授权应用程序的自">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-10-12T12:06:00.000Z">
+<meta property="article:modified_time" content="2024-10-12T12:06:00.000Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="免杀">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/UAC/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'uac白名单挖掘',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-10-12 20:06:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">uac白名单挖掘</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-12T12:06:00.000Z" title="发表于 2024-10-12 20:06:00">2024-10-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-10-12T12:06:00.000Z" title="更新于 2024-10-12 20:06:00">2024-10-12</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="uac白名单挖掘"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="uac白名单挖掘"><a href="#uac白名单挖掘" class="headerlink" title="uac白名单挖掘"></a>uac白名单挖掘</h1><h2 id="UAC介绍"><a href="#UAC介绍" class="headerlink" title="UAC介绍"></a>UAC介绍</h2><p><strong>用户帐户控制</strong>(User Account Control)是Windows Vista（及更高版本操作系统）中一组新的基础结构技术，可以帮助阻止恶意程序（有时也称为“恶意软件”）损坏系统，同时也可以帮助组织部署更易于管理 的平台</p>
+<p>使用UAC，应用程序和任务总是在非管理员帐户的安全上下文中运行，但管理员专门给系统授予管理员级别的访问权限时除外。UAC会阻止未经授权应用程序的自动安装，防止无意中对系统设置进行更改 </p>
+<p>一句话来说，就是分权限了，有些操作必须保证当前用户具有某个权限才能成功</p>
+<h2 id="查看令牌权限"><a href="#查看令牌权限" class="headerlink" title="查看令牌权限"></a>查看令牌权限</h2><p>查看用户的令牌权限：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">whoami /priv</span><br></pre></td></tr></table></figure>
+
+<p>输出会列出当前用户的拥有的所有权限（Privileges），包括权限的名称和当前状态（启用或禁用）。 </p>
+<p>例如我去查看管理员权限（cmd窗口我用管理员模式打开的）</p>
+<p><img src="/UAC/1728722366947.png" alt="1728722366947"></p>
+<p>这是普通用户的权限：<br><img src="/UAC/1728723045018.png" alt="1728723045018"></p>
+<p><strong>普通用户</strong>是无法通过 API 直接获取或启用 <code>SeDebugPrivilege</code> 等高权限特权的。 只有是管理员账户的时候，才能通过API去提升自己的权限</p>
+<p>一些权限的解释：</p>
+<p>**<code>SeDebugPrivilege</code>**：允许调试和访问系统中的所有进程。</p>
+<p>**<code>SeBackupPrivilege</code>**：允许备份文件，忽略常规文件的安全限制。</p>
+<p>**<code>SeRestorePrivilege</code>**：允许还原文件，同样忽略文件安全限制。</p>
+<p>**<code>SeShutdownPrivilege</code>**：允许关闭系统。</p>
+<p><strong>提升权限的步骤</strong>：</p>
+<ol>
+<li><strong>获取进程的访问令牌（token）</strong>： 你需要通过 <code>OpenProcessToken</code> 获取当前进程的访问令牌，来查看或修改该进程的权限。</li>
+<li>**查找 <code>SeDebugPrivilege</code>**： 使用 <code>LookupPrivilegeValue</code> 获取 <code>SeDebugPrivilege</code> 的权限标识符（LUID）。</li>
+<li><strong>调整进程权限</strong>： 使用 <code>AdjustTokenPrivileges</code> 函数来修改访问令牌，明确启用 <code>SeDebugPrivilege</code>。</li>
+</ol>
+<h2 id="VS里设置exe的UAC执行级别"><a href="#VS里设置exe的UAC执行级别" class="headerlink" title="VS里设置exe的UAC执行级别"></a>VS里设置exe的UAC执行级别</h2><p>在Vs中设置exe的UAC级别</p>
+<p><img src="/UAC/1728643523913.png" alt="1728643523913"></p>
+<p>asInvoker（以调用者权限运行） </p>
+<p>highestAvailable（以用户最高可用权限运行）：可以用之前的 <code>whoami /priv</code>查看已开启的权限，如果是需要管理员权限的话，那么还是会触发uac弹框</p>
+<p>requireAdministrator（要求管理员权限运行，会弹框）</p>
+<h2 id="挖掘UAC白名单"><a href="#挖掘UAC白名单" class="headerlink" title="挖掘UAC白名单"></a>挖掘UAC白名单</h2><p>白名单的uac程序需要满足以下几个条件：</p>
+<ol>
+<li><p>程序的manifest标识的配置属性 autoElevate ：<br><strong>autoElevate</strong> 是 Windows 中应用程序清单文件中的一个属性，用于指定程序是否能够在某些情况下自动提升到管理员权限，<strong>而不弹出 UAC 提示框</strong>。  这个属性通常被用于一些由微软签署的系统组件或某些特殊程序。 </p>
+</li>
+<li><p>程序不弹出UAC弹窗 </p>
+<p>程序不弹出 UAC 弹窗意味着它在运行时自动获得了管理员权限，而不需要用户的额外操作。</p>
+<p>否则需要rdp远控，去进行确认</p>
+</li>
+<li><p>从注册表里查询Shell\Open\command键值对 </p>
+<p>通常以shell\open\command命名的键值对存储的是可执行文件的路径，如果exe程序运行的时候找到该键值对，就会运行该键值对的程序，而因为exe运行的时候是静默提升了权限，所以运行的该键值对的程序就已经过了uac。所以我们把恶意的exe路径写入该键值对，那么就能够过uac执行我们的恶意exe。</p>
+</li>
+</ol>
+<p>通常，具备 <strong><code>autoElevate</code></strong> 属性的程序是由微软开发的并且被系统信任的关键系统工具。例如：</p>
+<ul>
+<li><strong>系统组件</strong>：一些 Windows 内部工具和系统服务（如 <code>taskmgr.exe</code>、<code>msconfig.exe</code>）可能具有 <code>autoElevate</code> 属性，允许它们在需要时自动提升到管理员权限。</li>
+<li><strong>微软签名的应用程序</strong>：具有强身份认证的程序，通常是微软官方发布的应用程序。</li>
+</ul>
+<p> 对于一般的第三方应用程序，启用 <code>autoElevate</code> 是 <strong>不可能的</strong>。该机制受 Windows 的严格控制，普通开发者编写的应用程序，即使在清单文件中设置了 <code>autoElevate</code>，也不会被系统允许自动提升权限。 </p>
+<p>我们从C:\Windows\System32具有autoElevate属性的exe选一个</p>
+<p><img src="/UAC/1728729555011.png" alt="1728729555011"></p>
+<p>例如<code>ComputerDefaults.exe</code></p>
+<p>我们用Process Monitor进行监控</p>
+<p><img src="/UAC/1728729698907.png" alt="1728729698907"></p>
+<p>然后出现一堆事件</p>
+<p><img src="/UAC/1728729783064.png" alt="1728729783064"></p>
+<p>我们进行查找，只要发现<code>Shell\Open\command</code>这样的键值对，我们就可以搞事情， 当用户通过某个程序或快捷方式尝试打开系统设置时，系统会查阅这个注册表项，以确定如何启动设置应用。这个命令通常会指向设置应用的可执行文件。 </p>
+<p>还有一个叫做：<br><code>shell\openas\command</code><br> <strong><code>penas</code> 子键</strong>：这个子键可能用于指定当用户选择“用其他应用程序打开”时，应该使用的程序。具体而言，<code>openas</code> 通常是通过右键菜单中的“打开方式”选项来实现的。 </p>
+<p>按下Ctrl + F进行查找</p>
+<p><img src="/UAC/1728729862236.png" alt="1728729862236"></p>
+<p>发现<code>shell\openas\command</code>还有</p>
+<p><code>HKCR\AllProtocols\shell\openas\command</code>和<code>HKCU\Software\Classes\AllProtocols\shell\openas\command</code></p>
+<p><code>HKCR</code> 的设置适用于所有用户，因此定义了系统范围的协议打开方式。<code>HKCU</code> 的设置只适用于当前用户，允许用户自定义其特定的打开方式。</p>
+<p>当 Windows 访问注册表时，会先查看 <code>HKCU</code> 的设置，然后查看 <code>HKCR</code> 的设置。如果同一个路径下存在多个设置，<code>HKCU</code> 的设置通常会覆盖 <code>HKCR</code> 中的设置。 </p>
+<p>根据我们在Process Monitor找到的信息</p>
+<p><img src="/UAC/1728732585335.png" alt="1728732585335"></p>
+<p>我们去注册表按照它的样式做好，然后再打开一遍</p>
+<p><img src="/UAC/1728732416951.png" alt="1728732416951"></p>
+<p>然后用Process Monitor查看</p>
+<p><img src="/UAC/1728732992340.png" alt="1728732992340"></p>
+<p>发现又去找了command项底下的DelegateExecute键值</p>
+<p>所以我们合理推测， 首先运行<code>ComputerDefaults.exe</code>这个程序之前，会查询<code>HKCU:\Software\Classes\ms-settings\shell\open\command</code>这个目录是否存在，若存在继续寻找同目录下是否有<code>DelegateExecute</code>这个键值对，若两者都存在则执行<code>HKCU:\Software\Classes\ms-settings\shell\open\command</code>指向的exe路径 </p>
+<p>于是我们将默认的键值改为例如</p>
+<p><img src="/UAC/1728734452645.png" alt="1728734452645"></p>
+<p>然后现在我们启动<br><img src="/UAC/1728734470700.png" alt="1728734470700"></p>
+<p>发现启动的是我们的扫雷程序：</p>
+<p><img src="/UAC/1728734488225.png" alt="1728734488225"></p>
+<p>然后用OpenArk去看，发现权限大大滴有，和管理员权限是一样的</p>
+<p><img src="/UAC/1728734665441.png" alt="1728734665441"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/UAC/">http://example.com/UAC/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%85%8D%E6%9D%80/">免杀</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/PPL%20Attack/" title="PPL Attack"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">PPL Attack</div></div></a></div><div class="next-post pull-right"><a href="/Windows%E6%B6%88%E6%81%AF%E9%92%A9%E5%AD%90/" title="Windows消息钩子"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Windows消息钩子</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/APC%E6%B3%A8%E5%85%A5/" title="APC机制与注入"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-04</div><div class="title">APC机制与注入</div></div></a></div><div><a href="/Loader%E7%9A%84%E7%BC%96%E5%86%99/" title="免杀——Loader编写"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-03</div><div class="title">免杀——Loader编写</div></div></a></div><div><a href="/PPID%E6%94%BB%E4%B8%8E%E9%98%B2/" title="PPID的攻与防"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-23</div><div class="title">PPID的攻与防</div></div></a></div><div><a href="/PPL%20Attack/" title="PPL Attack"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-15</div><div class="title">PPL Attack</div></div></a></div><div><a href="/VAD%E6%A0%91/" title="免杀——VAD树"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-05</div><div class="title">免杀——VAD树</div></div></a></div><div><a href="/session0%E6%B3%A8%E5%85%A5/" title="免杀——Session0注入"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-04</div><div class="title">免杀——Session0注入</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#uac%E7%99%BD%E5%90%8D%E5%8D%95%E6%8C%96%E6%8E%98"><span class="toc-number">1.</span> <span class="toc-text">uac白名单挖掘</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#UAC%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">UAC介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BB%A4%E7%89%8C%E6%9D%83%E9%99%90"><span class="toc-number">1.2.</span> <span class="toc-text">查看令牌权限</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#VS%E9%87%8C%E8%AE%BE%E7%BD%AEexe%E7%9A%84UAC%E6%89%A7%E8%A1%8C%E7%BA%A7%E5%88%AB"><span class="toc-number">1.3.</span> <span class="toc-text">VS里设置exe的UAC执行级别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%96%E6%8E%98UAC%E7%99%BD%E5%90%8D%E5%8D%95"><span class="toc-number">1.4.</span> <span class="toc-text">挖掘UAC白名单</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

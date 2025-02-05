@@ -1,0 +1,357 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows内核（6）——内核调试 | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windows内核环境配置：学习系统内核程序是如何运行的，分析程序的运行就必须用到调试，要调试就要能下断点  Windows系统当处于调试状态的时候，所有进程都会被挂起，除了一个调试子系统，用来与本机（Windbg）通过串口进行交互，传递调试指令 Win7+WmWare+Windbg双机调试看这个博客吧，很详细 https:&#x2F;&#x2F;cloud.tencent.com&#x2F;developer&#x2F;article">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows内核（6）——内核调试">
+<meta property="og:url" content="http://example.com/Windows%E5%86%85%E6%A0%B86(Debug)/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Windows内核环境配置：学习系统内核程序是如何运行的，分析程序的运行就必须用到调试，要调试就要能下断点  Windows系统当处于调试状态的时候，所有进程都会被挂起，除了一个调试子系统，用来与本机（Windbg）通过串口进行交互，传递调试指令 Win7+WmWare+Windbg双机调试看这个博客吧，很详细 https:&#x2F;&#x2F;cloud.tencent.com&#x2F;developer&#x2F;article">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-07-14T14:45:00.000Z">
+<meta property="article:modified_time" content="2024-07-14T14:45:00.000Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Windows内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/Windows%E5%86%85%E6%A0%B86(Debug)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows内核（6）——内核调试',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-07-14 22:45:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Windows内核（6）——内核调试</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-07-14T14:45:00.000Z" title="发表于 2024-07-14 22:45:00">2024-07-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-07-14T14:45:00.000Z" title="更新于 2024-07-14 22:45:00">2024-07-14</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Windows内核（6）——内核调试"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Windows内核"><a href="#Windows内核" class="headerlink" title="Windows内核"></a>Windows内核</h1><h3 id="环境配置："><a href="#环境配置：" class="headerlink" title="环境配置："></a>环境配置：</h3><p>学习系统内核程序是如何运行的，分析程序的运行就必须用到调试，要调试就要能下断点</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1720966652633-1721056267933.png" alt="1720966652633"></p>
+<p>Windows系统当处于调试状态的时候，所有进程都会被挂起，除了一个调试子系统，用来与本机（Windbg）通过串口进行交互，传递调试指令</p>
+<p>Win7+WmWare+Windbg双机调试看这个博客吧，很详细</p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1470241">https://cloud.tencent.com/developer/article/1470241</a></p>
+<p>嘿嘿嘿配好了</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1720968085117-1721056267934.png" alt="1720968085117"></p>
+<p>注意注意，一定要在系统启动的时候，打开Windbg才能调试上！</p>
+<p>X86的Windbg有个bug，就是寄存器窗口没有值，这个可以去github上面下载一个dll</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721009527519-1721056267934.png" alt="1721009527519"></p>
+<p>放在同个文件夹即可</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721009550696-1721056267934.png" alt="1721009550696"></p>
+<p>然后执行命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!WingDbg.regfix <span class="comment">#注意大小写</span></span><br></pre></td></tr></table></figure>
+
+<p>值得注意的是，命令为：Wingdbg而不是Windbg，虽然我也不知道为什么</p>
+<p>这下寄存器窗口就有值了</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721009601615-1721056267934.png" alt="1721009601615"></p>
+<p>建议界面可以弄得和OD和x96dbg一样，然后点击保存工作界面：<br><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721010599761-1721056267934.png" alt="1721010599761"></p>
+<p>然后再次进入Windbg的时候，如果没有自动还原工作界面，可以自行打开</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721010784767-1721056267934.png" alt="1721010784767"></p>
+<p>Open Workspace</p>
+<h3 id="调试驱动程序"><a href="#调试驱动程序" class="headerlink" title="调试驱动程序"></a>调试驱动程序</h3><h4 id="旧版Windbg"><a href="#旧版Windbg" class="headerlink" title="旧版Windbg"></a>旧版Windbg</h4><p>首先我们要编译Debug模式下的驱动程序，因为这样可以生成PDB文件，在Windbg下可以进行源码级调试</p>
+<p>一般是在入口函数造一个异常，这样调试器就可以收到一个异常了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">__asm int 3;</span><br></pre></td></tr></table></figure>
+
+<p>但是X64不允许内联汇编</p>
+<p>所以我们用Windows提供的API，DbgBreakPoint这个API去造一个异常。但是Release版这玩意也会卡住，所以我们一般用KdBreakPoint</p>
+<p>在Windbg可以查看API的具体实现，但是必须指定是哪个模块的</p>
+<p>lm遍历所有模块</p>
+<p>例如查看nt模块下的DbgBreakPoint</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">u nt!DbgBreakPoint</span><br></pre></td></tr></table></figure>
+
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721012470829-1721056267934.png" alt="1721012470829"></p>
+<p>如何加载指定pdb？</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721012680333-1721056267934.png" alt="1721012680333"></p>
+<p>打开符号路径，在原来的基础加个分号，然后把路径复制上去就行了，点击OK</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721012878068-1721056267934.png" alt="1721012878068"></p>
+<p>加完路径以后，一启动带有KdBreakPoint的程序，就会自动跳出源码，这下就可以进行源码级的调试了</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721013622180-1721056267934.png" alt="1721013622180"></p>
+<h4 id="新版Windbg"><a href="#新版Windbg" class="headerlink" title="新版Windbg"></a>新版Windbg</h4><p>新版的Windbg如何双机调试呢？</p>
+<p>其实是差不多的（必须要管理员启动）</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721033416062.png" alt="1721033416062"></p>
+<p>配置信息如上图所示</p>
+<p>记得一定要在系统启动的时候连接，否则很容易卡死或者连不上，我也不知道为什么。还有就是无论是新版的还是旧版的，虚拟机里面都必须打开DebugView，这样Windbg才能接收到调试信息，这尼玛确实有点难受了，但是问题好像又不大，不知道如何解决就很淦啊</p>
+<p>但是新版的我调试起来很卡，不知道为什么，所以我选择用旧版，顶多就是汇编那里没高亮</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721034266316.png" alt="1721034266316"></p>
+<p>然后箭头指的方向是选定Disasmbly级别调试还是源码级别调试</p>
+<h4 id="Windbg常见指令："><a href="#Windbg常见指令：" class="headerlink" title="Windbg常见指令："></a>Windbg常见指令：</h4><h4 id="1-符号命令"><a href="#1-符号命令" class="headerlink" title="1.符号命令"></a>1.<strong>符号命令</strong></h4><ul>
+<li><p><strong>reload</strong></p>
+</li>
+<li><ul>
+<li><strong>加载当前需要的符号</strong></li>
+</ul>
+</li>
+<li><p><strong>reload &#x2F;f *</strong></p>
+</li>
+<li><ul>
+<li><strong>加载所有的符号</strong></li>
+</ul>
+</li>
+<li><p><strong>添加自己的pdb符号</strong></p>
+</li>
+</ul>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721043454938.png" alt="1721043454938"></p>
+<p>打开符号路径，在最后加一个分号，然后把新的路径加上去即可</p>
+<h4 id="2-进程命令"><a href="#2-进程命令" class="headerlink" title="2. 进程命令"></a><strong>2. 进程命令</strong></h4><ul>
+<li><p><strong>.attach pid 			附加进程</strong></p>
+</li>
+<li><p><strong>.detach 				取消附加</strong></p>
+</li>
+<li><p><strong>!process 0 0 			列出系统进程信息，0代表遍历的信息复杂程度，0代表简单遍历。（必须要有符号）</strong></p>
+</li>
+<li><p><strong>!process 0 7 			列出系统进程的详细信息（慎用，数据非常庞大）</strong></p>
+</li>
+<li><p><strong>!process EPROCESS 7 	列出进程的详细信息</strong></p>
+</li>
+<li><p><strong>.process &#x2F;p EPROCESS 	进入该进程的上下文（强制切换线程使用）</strong>这个很有用，通过列出系统进程的信息，拿到PROCESS的编号，就可以强制进入这个进程，此时下的断点就是会断在这个进程。例如我想断在某个进程调用某个API，那么就强制切到这个进程，然后在这个API下断点，这样就是断在这个进程使用API这里了</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bp /p eprocess address/func </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>.process &#x2F;i EPROCESS   运行这个指令，在按下g就可以断在指定的进程中</p>
+</li>
+</ul>
+<h4 id="3-线程"><a href="#3-线程" class="headerlink" title="3. 线程"></a><strong>3. 线程</strong></h4><ul>
+<li><strong>~* 					显示所有线程</strong></li>
+<li><strong>~.					显示引起异常的线程</strong></li>
+<li><strong>~* kb 				显示所有线程的栈</strong></li>
+<li><strong>.thread ETHREAD 		进入该线程的上下文</strong></li>
+<li>**!thread ETHREAD		查看线程结构    **用!process EPROCESS 7遍历线程，就可以知道具体Thread的信息了</li>
+</ul>
+<h4 id="4-断点"><a href="#4-断点" class="headerlink" title="4.断点"></a><strong>4.断点</strong></h4><ul>
+<li><p>bp address</p>
+</li>
+<li><p>bp model!func 符号断点 （ 如果符号未加载，<code>bp</code> 命令将无法设置断点，必须等到符号加载后重新设置。 ）</p>
+</li>
+<li><p>bu model!func 符号断点（ 适用于模块或符号尚未加载的情况。 ）</p>
+</li>
+<li><p>bm model!fu*c 正则符号断点</p>
+</li>
+<li><p>ba w4&#x2F;r4&#x2F;e4&#x2F;i4 address 内存断点<br><code>w</code>：写操作断点（write）</p>
+<p><code>r</code>：读操作断点（read）</p>
+<p><code>e</code>：执行断点（execute）</p>
+<p><code>i</code>：输入&#x2F;输出断点（input&#x2F;output），一般用于端口访问<br>后面的4是指字节数</p>
+</li>
+<li><p>bp &#x2F;p eprocess address&#x2F;func  （ 这个命令用于设置一个进程范围的断点，只在特定进程内触发。(内核模式下有多个进程) ）<strong>（这个很有用！否则会在全部进程只要调用这个函数就会断下！）</strong></p>
+</li>
+<li><p>bp &#x2F;t ehtread address&#x2F;func  （ 这个命令用于设置一个线程范围的断点，只在特定线程内触发。 ）</p>
+</li>
+<li><p>ba <type>  <size> &#x2F;p  <EPROCESS>  &#x2F;t  <ETHREAD>  <address> 进程线程断点</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ba w4 /p fffffa8001d4b060 /t fffffa8001e3c080 0x00400000</span><br></pre></td></tr></table></figure>
+
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721053898849.png" alt="1721053898849"></p>
+</li>
+<li><p>bl   (Break List)  <code>bl</code> 命令用于列出当前所有设置的断点及其状态。它提供了断点编号、地址、命令和条件等信息。 </p>
+</li>
+<li><p>bc</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bc &lt;断点编号&gt;  <span class="comment">#要删除的断点编号。</span></span><br><span class="line">bc *   <span class="comment">#删除所有断点。</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>be   (Break Enable)  命令用于启用指定的断点。 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">be &lt;断点编号&gt;</span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p>bd ( Break Disable ) 命令用于禁用指定的断点。 </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bd &lt;断点编号&gt;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><strong>条件断点</strong></p>
+<p><strong>设置断点</strong>：首先设置一个普通断点。</p>
+<p><strong>添加条件</strong>：使用 <code>j</code> 命令来添加条件。</p>
+<p> 使用 WinDbg 提供的 <code>j</code> 命令（条件分支命令）添加条件。 </p>
+<p>例1：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bp MyModule!MyFunction <span class="string">&quot;j (poi(@esp+0x20) == 10) &#x27;gc&#x27;; &#x27;g&#x27;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>在这个示例中：</p>
+<ul>
+<li><p><code>bp MyModule!MyFunction</code> 设置在 <code>MyFunction</code> 上的断点。</p>
+</li>
+<li><p><code>poi(@esp+0x20) == 10</code> 是条件，检查局部变量 <code>x</code> 是否等于 10。</p>
+<blockquote>
+<p><code>poi</code> (Pointer to Integer)</p>
+<p><code>poi</code> 操作符用于获取指定内存地址处的指针值。它可以用来解引用指针，即获取指针所指向的内存地址的值。</p>
+</blockquote>
+</li>
+<li><pre><code>&#39;gc&#39;; &#39;g&#39;
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">   是当条件满足和不满足时执行的命令。</span><br><span class="line"></span><br><span class="line">  - `&#x27;gc&#x27;` (Go from conditional breakpoint) 表示当条件满足时，继续执行。</span><br><span class="line">  - `&#x27;g&#x27;` 表示当条件不满足时，继续执行（即不触发断点）。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">例2：</span><br><span class="line"></span><br><span class="line">```bash</span><br><span class="line">bp MyModule!MyFunction &quot;j (@$t0 = dwo(MyModule!g_Var), @$t0 == 5) &#x27;gc&#x27;; &#x27;g&#x27;&quot;</span><br></pre></td></tr></table></figure>
+</code></pre>
+</li>
+</ul>
+<p><code>dwo(MyModule!g_Var)</code> 获取全局变量 <code>g_Var</code> 的值。</p>
+<p><code>@$t0 == 5</code> 检查 <code>g_Var</code> 是否等于 5。</p>
+<p><code>dwo</code> (DWORD)<br><code>dwo</code> 操作符用于获取指定内存地址处的双字（DWORD）值。一个 DWORD 是 4 字节。</p>
+<p><code>@$t0</code> 是一个 WinDbg 的伪寄存器，用于存储临时值。WinDbg 提供了一组伪寄存器（<code>@$t0</code> 到 <code>@$t19</code>），可以在调试会话中用来存储和传递临时数据。 </p>
+<h4 id="5-跟踪命令"><a href="#5-跟踪命令" class="headerlink" title="5. 跟踪命令"></a>5. 跟踪命令</h4><p>T指令单步执行</p>
+<p>TA单步跟踪到指定地址，如果没有参数将运行到断点处</p>
+<p>TB执行到分支指令，分支指令包括calls，return，jumps，counted，loops，and while loops</p>
+<p>TC指令执行到call指令</p>
+<p>WT Trace and Watch Data 一条强大的指令，可以对执行流程做分析</p>
+<h4 id="6-内存命令"><a href="#6-内存命令" class="headerlink" title="6. 内存命令"></a>6. 内存命令</h4><p>db 以一个字节显示值和ASSCII字符</p>
+<p>dw 显示两个字节的值</p>
+<p>dd 显示四个字节的值</p>
+<p>dq 显示8个字节的值</p>
+<p>dp 显示指针长度的值（32位等同于dd，64等同于dq）</p>
+<p>qD 显示double实数（8字节）的值</p>
+<p>df  显示float实数（4字节）的值</p>
+<p>da 显示asscii值</p>
+<p>du 显示unicode值</p>
+<p>ds 显示ANSI_STRING值</p>
+<p>dS 显示UNICODE_STRING的值</p>
+<p>ddp： <code>ddp</code> 指令是一种内存显示命令，用于显示内存内容并尝试将其解释为指针值。<code>ddp</code> 是 <code>dd</code> 命令的扩展，<code>dd</code> 命令用于以双字（DWORD）格式显示内存内容，而 <code>ddp</code> 则会显示内存中的每个双字（DWORD）并尝试将其解析为指针，指向的内容也会被显示。 </p>
+<p>dda: (Display memory as ASCII strings): dda 命令用于将内存内容以 ASCII 字符串格式显示。</p>
+<p> <code>ddu</code> 命令用于将内存内容以 Unicode 字符串格式显示。 </p>
+<p> <code>ddS</code> 命令用于将内存内容以符号（symbol）格式显示。<code>ddS</code> 会尝试将内存地址解释为符号地址，并显示相应的符号信息。 </p>
+<h4 id="7-修改内存"><a href="#7-修改内存" class="headerlink" title="7.修改内存"></a>7.修改内存</h4><p>eb&#x2F;ed&#x2F;eD&#x2F;ef&#x2F;ep&#x2F;eq&#x2F;ew</p>
+<p>ed address value</p>
+<p>ea&#x2F;eu</p>
+<p>eza&#x2F;ezu</p>
+<p>修改寄存器是用r命令</p>
+<h4 id="8-堆栈命令"><a href="#8-堆栈命令" class="headerlink" title="8.堆栈命令"></a>8.堆栈命令</h4><p>查看调用堆栈的信息</p>
+<p>kv 3个参数 调用约定</p>
+<p>kb 3个参数</p>
+<p>kp 全部参数</p>
+<h4 id="9-其他命令"><a href="#9-其他命令" class="headerlink" title="9.其他命令"></a>9.其他命令</h4><p>lm查看当前载入的模块</p>
+<p>!peb 查看当前进程环境块 （PEB）</p>
+<p>x 查看模块的符号，如 x mydriver!* FastIo <em>,显示所有与 * FastIo</em> 匹配的符号列表</p>
+<p>dt 查看类型数据，还可以用来查看模块类型的符号列表，如dt dgguarder!_IMAGE_DOS_HEADER 00400000<br>从 0x400000处查看 _IMAGE_DOS_HEADER</p>
+<p>解析蓝屏命令：</p>
+<ul>
+<li><strong>!analyze -v</strong></li>
+</ul>
+<p>当蓝屏的时候，调用这条命令会分析蓝屏的原因。</p>
+<p>这个能显示当时的参数和寄存器，调用堆栈，崩溃的原因（错误码），如果有pdb还会显示当时崩溃的代码的行数</p>
+<p>还能显示是哪个驱动崩了</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721055498893.png" alt="1721055498893"></p>
+<h3 id="让电脑蓝屏时保存环境"><a href="#让电脑蓝屏时保存环境" class="headerlink" title="让电脑蓝屏时保存环境"></a>让电脑蓝屏时保存环境</h3><p>如果没有双机调试的时候，碰巧发生了蓝屏，这时候就没办法分析错误原因了吗？当然不是</p>
+<p>以Win7为例子，我们打开计算机的属性，点击高级系统设置，点击启动和故障恢复的设置，在系统失败这里设置将事件写入系统日志，完全内存转储（文件会很大），但是一般我们用的是小内存转储，这样省空间</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721055068322.png" alt="1721055068322"></p>
+<p>然后dump下来的“案发现场”就会保存在这：<br><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721055836151.png" alt="1721055836151"></p>
+<p>打开Windbg，加载这个dump文件就可以还原当时的情况了！</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B86(Debug)/1721055859016.png" alt="1721055859016"></p>
+<p>美中不足的是，没有pdb，但是可以根据偏偏移，用IDA定位到具体是哪个函数，也算是一个解决方法吧。</p>
+<h3 id="双机调试应用层程序"><a href="#双机调试应用层程序" class="headerlink" title="双机调试应用层程序"></a>双机调试应用层程序</h3><p><a target="_blank" rel="noopener" href="https://bbs.kanxue.com/thread-246449.html">https://bbs.kanxue.com/thread-246449.html</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/Windows%E5%86%85%E6%A0%B86(Debug)/">http://example.com/Windows%E5%86%85%E6%A0%B86(Debug)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Windows%E5%86%85%E6%A0%B8/">Windows内核</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/Windows%E5%86%85%E6%A0%B87(%E5%86%85%E6%A0%B8API%E4%BB%8B%E7%BB%8D)/" title="Windows内核（7）——内核API介绍"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Windows内核（7）——内核API介绍</div></div></a></div><div class="next-post pull-right"><a href="/Windows%E5%86%85%E6%A0%B85_%E5%AE%89%E5%85%A8%E9%80%9A%E4%BF%A1/" title="Windows内核（5）——安全通讯"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Windows内核（5）——安全通讯</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/Windows%E5%86%85%E6%A0%B81(%E5%86%85%E6%A0%B8%E5%88%9D%E6%8E%A2&%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F)/" title="Windows内核（1）——内核初探&amp;编写第一个驱动程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-10</div><div class="title">Windows内核（1）——内核初探&amp;编写第一个驱动程序</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B810(10-10-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（10）——分页机制（10-10-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-27</div><div class="title">Windows内核（10）——分页机制（10-10-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（11）——分页机制（2-9-9-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-30</div><div class="title">Windows内核（11）——分页机制（2-9-9-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B812(%E4%BF%AE%E6%94%B9%E5%AF%B9%E6%96%B9%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98)/" title="Windows内核（12）——通过CR3修改进程内存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-03</div><div class="title">Windows内核（12）——通过CR3修改进程内存</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B814(%E8%A1%A5%E7%AC%94%E8%AE%B0)/" title="Windows内核（14）——补笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-17</div><div class="title">Windows内核（14）——补笔记</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/" title="Windows内核（15）——键盘Hook，调用门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-20</div><div class="title">Windows内核（15）——键盘Hook，调用门</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windows%E5%86%85%E6%A0%B8"><span class="toc-number">1.</span> <span class="toc-text">Windows内核</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%EF%BC%9A"><span class="toc-number">1.0.1.</span> <span class="toc-text">环境配置：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.0.2.</span> <span class="toc-text">调试驱动程序</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%A7%E7%89%88Windbg"><span class="toc-number">1.0.2.1.</span> <span class="toc-text">旧版Windbg</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B0%E7%89%88Windbg"><span class="toc-number">1.0.2.2.</span> <span class="toc-text">新版Windbg</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Windbg%E5%B8%B8%E8%A7%81%E6%8C%87%E4%BB%A4%EF%BC%9A"><span class="toc-number">1.0.2.3.</span> <span class="toc-text">Windbg常见指令：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%AC%A6%E5%8F%B7%E5%91%BD%E4%BB%A4"><span class="toc-number">1.0.2.4.</span> <span class="toc-text">1.符号命令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E8%BF%9B%E7%A8%8B%E5%91%BD%E4%BB%A4"><span class="toc-number">1.0.2.5.</span> <span class="toc-text">2. 进程命令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E7%BA%BF%E7%A8%8B"><span class="toc-number">1.0.2.6.</span> <span class="toc-text">3. 线程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E6%96%AD%E7%82%B9"><span class="toc-number">1.0.2.7.</span> <span class="toc-text">4.断点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-%E8%B7%9F%E8%B8%AA%E5%91%BD%E4%BB%A4"><span class="toc-number">1.0.2.8.</span> <span class="toc-text">5. 跟踪命令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-%E5%86%85%E5%AD%98%E5%91%BD%E4%BB%A4"><span class="toc-number">1.0.2.9.</span> <span class="toc-text">6. 内存命令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-%E4%BF%AE%E6%94%B9%E5%86%85%E5%AD%98"><span class="toc-number">1.0.2.10.</span> <span class="toc-text">7.修改内存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8-%E5%A0%86%E6%A0%88%E5%91%BD%E4%BB%A4"><span class="toc-number">1.0.2.11.</span> <span class="toc-text">8.堆栈命令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#9-%E5%85%B6%E4%BB%96%E5%91%BD%E4%BB%A4"><span class="toc-number">1.0.2.12.</span> <span class="toc-text">9.其他命令</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A9%E7%94%B5%E8%84%91%E8%93%9D%E5%B1%8F%E6%97%B6%E4%BF%9D%E5%AD%98%E7%8E%AF%E5%A2%83"><span class="toc-number">1.0.3.</span> <span class="toc-text">让电脑蓝屏时保存环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8C%E6%9C%BA%E8%B0%83%E8%AF%95%E5%BA%94%E7%94%A8%E5%B1%82%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.0.4.</span> <span class="toc-text">双机调试应用层程序</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

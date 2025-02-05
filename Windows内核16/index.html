@@ -1,0 +1,284 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows内核（16）——探究SSDT | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windows内核探究SSDTSSDT简介在Windows x86系统中，系统服务描述表（System Service Descriptor Table，简称SSDT）是一个核心数据结构，主要用于管理和调度系统调用（syscall）。SSDT在操作系统的内核模式下提供了一种机制，使得用户模式的应用程序能够请求内核模式服务，比如文件操作、进程管理、内存管理等。以下是SSDT的主要作用：  系统调用接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows内核（16）——探究SSDT">
+<meta property="og:url" content="http://example.com/Windows%E5%86%85%E6%A0%B816/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Windows内核探究SSDTSSDT简介在Windows x86系统中，系统服务描述表（System Service Descriptor Table，简称SSDT）是一个核心数据结构，主要用于管理和调度系统调用（syscall）。SSDT在操作系统的内核模式下提供了一种机制，使得用户模式的应用程序能够请求内核模式服务，比如文件操作、进程管理、内存管理等。以下是SSDT的主要作用：  系统调用接">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-08-25T14:25:00.000Z">
+<meta property="article:modified_time" content="2024-08-25T14:25:00.000Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Windows内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/Windows%E5%86%85%E6%A0%B816/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows内核（16）——探究SSDT',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-08-25 22:25:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Windows内核（16）——探究SSDT</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-08-25T14:25:00.000Z" title="发表于 2024-08-25 22:25:00">2024-08-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-08-25T14:25:00.000Z" title="更新于 2024-08-25 22:25:00">2024-08-25</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Windows内核（16）——探究SSDT"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Windows内核"><a href="#Windows内核" class="headerlink" title="Windows内核"></a>Windows内核</h1><h2 id="探究SSDT"><a href="#探究SSDT" class="headerlink" title="探究SSDT"></a>探究SSDT</h2><h2 id="SSDT简介"><a href="#SSDT简介" class="headerlink" title="SSDT简介"></a>SSDT简介</h2><p>在Windows x86系统中，系统服务描述表（System Service Descriptor Table，简称SSDT）是一个核心数据结构，主要用于管理和调度系统调用（syscall）。SSDT在操作系统的内核模式下提供了一种机制，使得用户模式的应用程序能够请求内核模式服务，比如文件操作、进程管理、内存管理等。以下是SSDT的主要作用：</p>
+<ol>
+<li>系统调用接口<br>SSDT充当了用户模式应用程序与操作系统内核之间的桥梁。应用程序通过调用标准的Windows API（如<code>ReadFile</code>、<code>WriteFile</code>等），这些API最终会通过系统调用的方式进入内核模式。SSDT中包含了一组函数指针，这些指针指向具体的内核服务例程。每个系统调用在SSDT中都有对应的入口，通过这些入口可以找到实现该调用的内核函数。</li>
+<li>系统调用号到函数指针的映射<br>每个系统调用在SSDT中都有一个唯一的索引号（系统调用号）。当应用程序发出系统调用时，会使用该调用的系统调用号在SSDT中查找对应的内核服务例程的地址。然后，系统将控制权转移给这个地址处的服务例程来执行实际的操作。例如，通过<code>syscall</code>指令，CPU根据系统调用号查找SSDT中的相应地址并跳转执行。</li>
+<li>安全和稳定性<br>   SSDT通过将系统调用的实现限定在内核模式中，可以防止用户模式代码直接访问和修改内核数据结构，从而提供了一层安全保护。此外，SSDT的结构化管理使得操作系统能够更有效地控制和调度系统资源，从而提高系统的稳定性。</li>
+<li>系统扩展和模块化<br>SSDT的设计使得操作系统可以灵活地增加或修改系统调用。例如，驱动程序可以通过修改SSDT来添加新的系统调用或者替换现有的系统调用，这在某些特殊的内核模块和扩展中非常有用。然而，这种操作也可能带来安全问题，因为恶意软件可能利用这种机制来进行钩子注入（hooking），以隐藏自身活动或拦截系统调用。</li>
+<li>逆向工程和安全分析<br>   在逆向工程和安全分析领域，研究SSDT非常重要。安全专家经常分析SSDT来检查系统调用是否被恶意软件钩取。通过检测SSDT中函数指针的异常修改，安全工具可以发现潜在的恶意行为，如rootkit的存在。</li>
+</ol>
+<p>新版本通过Sysenter，也差不多：<br><img src="/Windows%E5%86%85%E6%A0%B816/1724587877279.png" alt="1724587877279"></p>
+<h2 id="SSDT结构"><a href="#SSDT结构" class="headerlink" title="SSDT结构"></a>SSDT结构</h2><p>SSDT 表条目结构</p>
+<p>每个条目通常包含一个指向系统调用处理函数的指针，以及一个参数个数。结构体可以这样定义：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SSDTEntry</span> &#123;</span><br><span class="line">    PVOID ServiceFunction; <span class="comment">// 指向系统调用函数的指针</span></span><br><span class="line">    ULONG NumberOfArguments; <span class="comment">// 系统调用的参数数量</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>SSDT 表结构</p>
+<p>SSDT 表是一个包含多个 SSDTEntry 的表，通常会有一个基地址和总条目数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SSDT</span> &#123;</span><br><span class="line">    SSDTEntry* ServiceTable; <span class="comment">// 指向 SSDTEntry 数组的指针</span></span><br><span class="line">    PVOID ArgumentTable;     <span class="comment">// 可选：指向系统调用参数表的指针</span></span><br><span class="line">    ULONG NumberOfServices;  <span class="comment">// 系统调用的总数</span></span><br><span class="line">    PVOID ServiceLimit;      <span class="comment">// 服务表的限制地址</span></span><br><span class="line">    PVOID TableBase;         <span class="comment">// 表的基地址</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="通过SSDT进入内核"><a href="#通过SSDT进入内核" class="headerlink" title="通过SSDT进入内核"></a>通过SSDT进入内核</h2><p>跟踪一波API，例如 ExitProcess这个API</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	__asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="type">int</span> <span class="number">3</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">ExitProcess</span>(<span class="number">0</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在虚拟机运行这个程序，触发int 3中断后，被windbg捕获，开始调试</p>
+<p>但是断下来之后，我们发现是没有符号的，因为Windbg还没加载符号，所以我们要手动加载符号</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B816/1724571327556.png" alt="1724571327556"></p>
+<p>windbg指令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.reload</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这样我们就可以进行有符号调试了</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B816/1724571401352.png" alt="1724571401352"></p>
+<p>通过查阅资料发现</p>
+<p>老版本系统的调用ExitProcess的过程如下：ExitProcess &#x3D;&gt; ntdll.NtTerminateProcess &#x3D;&gt; KiIntSystemCall&#x3D;&gt; int 0x2E &#x3D;&gt; nt!KiSystemService &#x3D;&gt;查表 &#x3D;&gt;nt.NtTerminateProcess &#x3D;&gt;iretd</p>
+<p>可以看到老版本系统Syscall通过的是中断实现</p>
+<p>具体来说：</p>
+<p>通过nt!KiIntSystemCall调用 int 0x2E</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B816/1724571805154.png" alt="1724571805154"></p>
+<p>我们查看下int 0x2e对应的中断门是啥</p>
+<p>通过查看对应的IDT表项发现是一个系统服务</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B816/1724573732714.png" alt="1724573732714"></p>
+<p>让我们来模拟一下老版本下的ExitProcess(0)的调用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">__asm</span><br><span class="line">&#123;</span><br><span class="line">    push 0</span><br><span class="line">    push -1 ;代表当前进程</span><br><span class="line">    mov eax,0x173 ;系统调用号</span><br><span class="line">    mov edx,esp</span><br><span class="line">    int 0x2e</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">;mov edx, esp 的作用</span><br><span class="line">;在这个模拟的系统调用代码中，mov edx, esp 的作用是将栈指针（ESP）的值赋给 EDX，这样 EDX 指向了当前的栈顶。这个操作将栈中的参数传递给系统调用。</span><br></pre></td></tr></table></figure>
+
+<p>这样写的代码的优势是1.让不懂内核的人逆不动。2.可以通过中断去调用API，而不需要写驱动程序</p>
+<p>劣势就是系统不通用，可能系统调用号会改变</p>
+<p>用Windbg可以直接查到SSDT表：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dd</span> KeServiceDescriptorTable</span><br></pre></td></tr></table></figure>
+
+
+
+<p>然后我们用WRK文档查询下这个结构体：</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B816/1724588489239.png" alt="1724588489239"></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_KSERVICE_TABLE_DESCRIPTOR</span> &#123;</span><br><span class="line">    PULONG_PTR Base;</span><br><span class="line">    PULONG Count; <span class="comment">//没啥用</span></span><br><span class="line">    ULONG Limit;</span><br><span class="line">    PUCHAR Number;</span><br><span class="line">&#125; KSERVICE_TABLE_DESCRIPTOR, *PKSERVICE_TABLE_DESCRIPTOR;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出来这个表大小是16个字节：<br>在这个表的下面0x10个字节，就是KeServiceDescriptorTableShadow</p>
+<p><code>KeServiceDescriptorTableShadow</code> 是 <code>KeServiceDescriptorTable</code> 的扩展，它用于支持用户模式和内核模式下的服务调用。 </p>
+<p>可以看到，在控制台程序中，KeServiceDescriptorTableShadow是空的。但是如果在Win32窗口程序，这一项就不会为空</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B816/1724588951275.png" alt="1724588951275"></p>
+<p>在 WinDbg 中，<code>dds</code> 指令用于以符号形式显示内存中的双字 (DWORD) 值。它的语法和功能如下： </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dds 0x400000 L10</span><br></pre></td></tr></table></figure>
+
+<p>这样，就会以4个字节为一个地址，以符号形式显示0x10个地址</p>
+<h2 id="防御的思路："><a href="#防御的思路：" class="headerlink" title="防御的思路："></a>防御的思路：</h2><p>总有一些恶意软件可能会调用一些敏感API，这时候我们就可以进行主动防御</p>
+<p>写一个报警软件：</p>
+<p>思路：</p>
+<p>Hook掉SSDT表，当调用这个API的时候，就在内核创建一个事件对象（CreateEvent）</p>
+<p>此时三环的报警软件采用WaitEvent进行接收内核的信号（WaitEvent），一旦收到信号，就进行弹窗，询问用户是否同意这个敏感API的调用</p>
+<p>（以上用队列实现）</p>
+<p>还有一些软件加了强壳，例如VMP，这时候如果我们Hook了SSDT表，就可以对这个软件调用的所有API监控，这样就可以大概摸清这个软件大致干啥</p>
+<h2 id="遇到被Hook的API如何还原"><a href="#遇到被Hook的API如何还原" class="headerlink" title="遇到被Hook的API如何还原"></a>遇到被Hook的API如何还原</h2><p>最快的方法就是重载内核，然后再去对比</p>
+<p>这样既能找到哪里被Hook，也能修改回原来的API</p>
+<h2 id="如何拿SSDT和ShadowSSDT表"><a href="#如何拿SSDT和ShadowSSDT表" class="headerlink" title="如何拿SSDT和ShadowSSDT表"></a>如何拿SSDT和ShadowSSDT表</h2><p>直接暴力切换进程  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.Process xxx</span><br></pre></td></tr></table></figure>
+
+<p>然后会有一个问题，就是每个系统版本不一样，那么就会导致SSDT可能在EPROCESS结构体的位置不一样，那这个咋解决呢？</p>
+<p>我们可以通过	nt!KiSystemServic 这个函数去找到对应偏移</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B816/1724637118596.png" alt="1724637118596"></p>
+<p>这样找特征可以保证在各个系统下通用</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//1.获取KTHREAD</span></span><br><span class="line">PETHREAD pNowThread = <span class="built_in">PsGetCurrentThread</span>();</span><br><span class="line"><span class="comment">//2.获取ServiceTable表</span></span><br><span class="line">g_pServiceTable = (KSERVICE_TABLE_DESCRIPTOR*)(*(ULONG*)((ULONG)pNowThread + <span class="number">0xbc</span>));</span><br></pre></td></tr></table></figure>
+
+
+
+<p>当然windbg还有更简单的命令：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dd nt!<span class="function">KeServiceDescriptorTable <span class="title">Lxxx</span>  <span class="params">(xxx代表长度)</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="实战Hook-SSDT表"><a href="#实战Hook-SSDT表" class="headerlink" title="实战Hook SSDT表"></a>实战Hook SSDT表</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;ntddk.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(1)</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">ServiceDescriptorEntry</span> &#123;</span><br><span class="line">  	<span class="type">unsigned</span> <span class="type">int</span> *ServiceTableBase;</span><br><span class="line">  	<span class="type">unsigned</span> <span class="type">int</span> *ServiceCounterTableBase;</span><br><span class="line">  	<span class="type">unsigned</span> <span class="type">int</span> NumberOfServices;</span><br><span class="line">  	<span class="type">unsigned</span> <span class="type">char</span> *ParamTableBase;</span><br><span class="line">&#125; ServiceDescriptorTableEntry_t, *PServiceDescriptorTableEntry_t;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack()</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS</span></span><br><span class="line"><span class="function">  <span class="title">PsLookupProcessByProcessId</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  IN HANDLE ProcessId,</span></span></span><br><span class="line"><span class="params"><span class="function">  OUT PEPROCESS *Process</span></span></span><br><span class="line"><span class="params"><span class="function">  )</span></span>;</span><br><span class="line">__declspec(dllimport) ServiceDescriptorTableEntry_t KeServiceDescriptorTable;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">NTSTATUS</span><span class="params">(*MYNTOPENPROCESS)</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  OUT PHANDLE             ProcessHandle,</span></span></span><br><span class="line"><span class="params"><span class="function">  IN ACCESS_MASK          AccessMask,</span></span></span><br><span class="line"><span class="params"><span class="function">  IN POBJECT_ATTRIBUTES   ObjectAttributes,</span></span></span><br><span class="line"><span class="params"><span class="function">  IN PCLIENT_ID           ClientId )</span></span>;<span class="comment">//定义一个指针函数，用于下面对O_NtOpenProcess进行强制转换</span></span><br><span class="line">ULONG O_NtOpenProcess;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">BOOLEAN <span class="title">ProtectProcess</span><span class="params">(HANDLE ProcessId,<span class="type">char</span> *str_ProtectObjName)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  	NTSTATUS status;</span><br><span class="line">  	PEPROCESS process_obj;</span><br><span class="line">  	<span class="keyword">if</span>(!<span class="built_in">MmIsAddressValid</span>(str_ProtectObjName))<span class="comment">//这个条件是用来判断目标进程名是否有效</span></span><br><span class="line">  	&#123;</span><br><span class="line">    	<span class="keyword">return</span> FALSE;</span><br><span class="line">  	&#125;</span><br><span class="line">  	<span class="keyword">if</span>(ProcessId==<span class="number">0</span>)<span class="comment">//这个条件是用来排除System Idle Process进程的干扰</span></span><br><span class="line">  	&#123;</span><br><span class="line">        <span class="keyword">return</span> FALSE;</span><br><span class="line">  	&#125;</span><br><span class="line">  	status=<span class="built_in">PsLookupProcessByProcessId</span>(ProcessId,&amp;process_obj);<span class="comment">//这句用来获取目标进程的EPROCESS结构</span></span><br><span class="line">  	<span class="keyword">if</span>(!<span class="built_in">NT_SUCCESS</span>(status))</span><br><span class="line">  	&#123;</span><br><span class="line">    	<span class="built_in">KdPrint</span>((<span class="string">&quot;我错了，这个是错误号:%X---这个是进程ID:%d&quot;</span>,status,ProcessId));</span><br><span class="line">    	<span class="keyword">return</span> FALSE;</span><br><span class="line">  	&#125;</span><br><span class="line">  	<span class="keyword">if</span>(!<span class="built_in">strcmp</span>((<span class="type">char</span> *)process_obj+<span class="number">0x174</span>,str_ProtectObjName))<span class="comment">//进行比较</span></span><br><span class="line">  	&#123;</span><br><span class="line">    	<span class="built_in">ObDereferenceObject</span>(process_obj);<span class="comment">//对象计数器减1，为了恢复对象管理器计数，便于回收</span></span><br><span class="line">    	<span class="keyword">return</span> TRUE;</span><br><span class="line">  	&#125;</span><br><span class="line">  	<span class="built_in">ObDereferenceObject</span>(process_obj);</span><br><span class="line">  	<span class="keyword">return</span> FALSE;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS <span class="title">MyNtOpenProcess</span> <span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  __out PHANDLE ProcessHandle,</span></span></span><br><span class="line"><span class="params"><span class="function">  __in ACCESS_MASK DesiredAccess,</span></span></span><br><span class="line"><span class="params"><span class="function">  __in POBJECT_ATTRIBUTES ObjectAttributes,</span></span></span><br><span class="line"><span class="params"><span class="function">  __in_opt PCLIENT_ID ClientId</span></span></span><br><span class="line"><span class="params"><span class="function">  )</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  	<span class="comment">//KdPrint((&quot;%s&quot;,(char *)PsGetCurrentProcess()+0x174));</span></span><br><span class="line">  	<span class="keyword">if</span>(<span class="built_in">ProtectProcess</span>(ClientId-&gt;UniqueProcess,<span class="string">&quot;calc.exe&quot;</span>))</span><br><span class="line">  	&#123;</span><br><span class="line">    	<span class="built_in">KdPrint</span>((<span class="string">&quot;%s想打开我吗？不可能。哈哈。。&quot;</span>,(<span class="type">char</span> *)<span class="built_in">PsGetCurrentProcess</span>()+<span class="number">0x174</span>));</span><br><span class="line">    	<span class="keyword">return</span> STATUS_UNSUCCESSFUL;</span><br><span class="line">  	&#125;</span><br><span class="line">  	<span class="comment">//KdPrint((&quot;Hook Success!&quot;));</span></span><br><span class="line">  	<span class="keyword">return</span> ((MYNTOPENPROCESS)O_NtOpenProcess)(ProcessHandle,<span class="comment">//处理完自己的任务后，调用原来的函数，让其它进程正常工作</span></span><br><span class="line">    DesiredAccess,</span><br><span class="line">    ObjectAttributes,</span><br><span class="line">    ClientId);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">PageProtectOff</span><span class="params">()</span><span class="comment">//关闭页面保护</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  	__asm&#123;</span><br><span class="line">    	cli</span><br><span class="line">      	mov  eax,cr0</span><br><span class="line">      	<span class="keyword">and</span>  eax,<span class="keyword">not</span> <span class="number">10000</span>h</span><br><span class="line">      	mov  cr0,eax</span><br><span class="line">    	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">PageProtectOn</span><span class="params">()</span><span class="comment">//打开页面保护</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  	__asm&#123;</span><br><span class="line">    	mov  eax,cr0</span><br><span class="line">    	<span class="keyword">or</span>   eax,<span class="number">10000</span>h</span><br><span class="line">    	mov  cr0,eax</span><br><span class="line">    	sti</span><br><span class="line">  	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">UnHookSsdt</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  	<span class="built_in">PageProtectOff</span>();</span><br><span class="line">  	KeServiceDescriptorTable.ServiceTableBase[<span class="number">122</span>]=O_NtOpenProcess;<span class="comment">//恢复ssdt中原来的函数地址</span></span><br><span class="line">  	<span class="built_in">PageProtectOn</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS <span class="title">ssdt_hook</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  	<span class="comment">//int i;</span></span><br><span class="line">  	<span class="comment">//for(i=0;i&lt;KeServiceDescriptorTable.NumberOfServices;i++)</span></span><br><span class="line">  	<span class="comment">//&#123;</span></span><br><span class="line">  	<span class="comment">//  KdPrint((&quot;NumberOfService[%d]-------				%x&quot;,i,KeServiceDescriptorTable.ServiceTableBase[i]));</span></span><br><span class="line">  	<span class="comment">//&#125;</span></span><br><span class="line">  	O_NtOpenProcess=KeServiceDescriptorTable.ServiceTableBase[<span class="number">122</span>];<span class="comment">//保存原来的函数地址</span></span><br><span class="line">  	<span class="built_in">PageProtectOff</span>();</span><br><span class="line">  	<span class="comment">//将原来ssdt中所要hook的函数地址换成我们自己的函数地址</span></span><br><span class="line">  	KeServiceDescriptorTable.ServiceTableBase[<span class="number">122</span>]=(<span class="type">unsigned</span> <span class="type">int</span>)MyNtOpenProcess;</span><br><span class="line">  	<span class="built_in">PageProtectOn</span>();</span><br><span class="line">  	<span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">DriverUnload</span><span class="params">(PDRIVER_OBJECT pDriverObject)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"> 		<span class="built_in">UnHookSsdt</span>();</span><br><span class="line">  		<span class="built_in">KdPrint</span>((<span class="string">&quot;Driver Unload Success !&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS <span class="title">DriverEntry</span><span class="params">(PDRIVER_OBJECT pDriverObject,PUNICODE_STRING pRegsiterPath)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  	<span class="built_in">DbgPrint</span>(<span class="string">&quot;This is My First Driver!&quot;</span>);</span><br><span class="line">  	<span class="built_in">ssdt_hook</span>();</span><br><span class="line">  	pDriverObject-&gt;DriverUnload = DriverUnload;</span><br><span class="line">  	<span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/Windows%E5%86%85%E6%A0%B816/">http://example.com/Windows%E5%86%85%E6%A0%B816/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Windows%E5%86%85%E6%A0%B8/">Windows内核</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/MFC%E9%80%86%E5%90%91/" title="MFC逆向分析(找消息处理函数)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MFC逆向分析(找消息处理函数)</div></div></a></div><div class="next-post pull-right"><a href="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/" title="Windows内核（15）——键盘Hook，调用门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Windows内核（15）——键盘Hook，调用门</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/Windows%E5%86%85%E6%A0%B81(%E5%86%85%E6%A0%B8%E5%88%9D%E6%8E%A2&%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F)/" title="Windows内核（1）——内核初探&amp;编写第一个驱动程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-10</div><div class="title">Windows内核（1）——内核初探&amp;编写第一个驱动程序</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B810(10-10-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（10）——分页机制（10-10-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-27</div><div class="title">Windows内核（10）——分页机制（10-10-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（11）——分页机制（2-9-9-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-30</div><div class="title">Windows内核（11）——分页机制（2-9-9-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B812(%E4%BF%AE%E6%94%B9%E5%AF%B9%E6%96%B9%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98)/" title="Windows内核（12）——通过CR3修改进程内存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-03</div><div class="title">Windows内核（12）——通过CR3修改进程内存</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B814(%E8%A1%A5%E7%AC%94%E8%AE%B0)/" title="Windows内核（14）——补笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-17</div><div class="title">Windows内核（14）——补笔记</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/" title="Windows内核（15）——键盘Hook，调用门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-20</div><div class="title">Windows内核（15）——键盘Hook，调用门</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windows%E5%86%85%E6%A0%B8"><span class="toc-number">1.</span> <span class="toc-text">Windows内核</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A2%E7%A9%B6SSDT"><span class="toc-number">1.1.</span> <span class="toc-text">探究SSDT</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SSDT%E7%AE%80%E4%BB%8B"><span class="toc-number">1.2.</span> <span class="toc-text">SSDT简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SSDT%E7%BB%93%E6%9E%84"><span class="toc-number">1.3.</span> <span class="toc-text">SSDT结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%9A%E8%BF%87SSDT%E8%BF%9B%E5%85%A5%E5%86%85%E6%A0%B8"><span class="toc-number">1.4.</span> <span class="toc-text">通过SSDT进入内核</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%98%B2%E5%BE%A1%E7%9A%84%E6%80%9D%E8%B7%AF%EF%BC%9A"><span class="toc-number">1.5.</span> <span class="toc-text">防御的思路：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%81%87%E5%88%B0%E8%A2%ABHook%E7%9A%84API%E5%A6%82%E4%BD%95%E8%BF%98%E5%8E%9F"><span class="toc-number">1.6.</span> <span class="toc-text">遇到被Hook的API如何还原</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E6%8B%BFSSDT%E5%92%8CShadowSSDT%E8%A1%A8"><span class="toc-number">1.7.</span> <span class="toc-text">如何拿SSDT和ShadowSSDT表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98Hook-SSDT%E8%A1%A8"><span class="toc-number">1.8.</span> <span class="toc-text">实战Hook SSDT表</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

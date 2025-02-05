@@ -1,0 +1,244 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Sfilter的实现原理 | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Sfilter的实现原理简介Windows 文件过滤驱动的原理主要基于操作系统的 I&#x2F;O 管道，利用过滤驱动程序来监控、修改或控制文件系统的 I&#x2F;O 操作。所有的 I&#x2F;O 操作（如打开文件、读写文件、关闭文件等）都通过 IRP 来处理。当用户模式程序发出 I&#x2F;O 请求时，操作系统生成相应的 IRP 并将其发送到适当的设备驱动程序。  回调函数 ： 在 IRP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sfilter的实现原理">
+<meta property="og:url" content="http://example.com/Sfilter/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Sfilter的实现原理简介Windows 文件过滤驱动的原理主要基于操作系统的 I&#x2F;O 管道，利用过滤驱动程序来监控、修改或控制文件系统的 I&#x2F;O 操作。所有的 I&#x2F;O 操作（如打开文件、读写文件、关闭文件等）都通过 IRP 来处理。当用户模式程序发出 I&#x2F;O 请求时，操作系统生成相应的 IRP 并将其发送到适当的设备驱动程序。  回调函数 ： 在 IRP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-10-31T13:09:00.000Z">
+<meta property="article:modified_time" content="2025-01-23T09:18:27.803Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="文件过滤">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/Sfilter/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Sfilter的实现原理',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-01-23 17:18:27'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Sfilter的实现原理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-31T13:09:00.000Z" title="发表于 2024-10-31 21:09:00">2024-10-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-23T09:18:27.803Z" title="更新于 2025-01-23 17:18:27">2025-01-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Sfilter的实现原理"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Sfilter的实现原理"><a href="#Sfilter的实现原理" class="headerlink" title="Sfilter的实现原理"></a>Sfilter的实现原理</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Windows 文件过滤驱动的原理主要基于操作系统的 I&#x2F;O 管道，利用过滤驱动程序来监控、修改或控制文件系统的 I&#x2F;O 操作。所有的 I&#x2F;O 操作（如打开文件、读写文件、关闭文件等）都通过 IRP 来处理。当用户模式程序发出 I&#x2F;O 请求时，操作系统生成相应的 IRP 并将其发送到适当的设备驱动程序。 </p>
+<p><strong>回调函数</strong> ： 在 IRP 请求处理中，涉及的函数通常被称为 <strong>回调函数</strong>。这些回调函数是在驱动程序中定义的，用于处理特定类型的 IRP 请求。回调函数在特定的事件发生时被调用。这也就是为什么三环程序明明没有任何跳转就可以去执行注册的回调函数，就是发送了IRP请求，所以注册的回调函数会被执行</p>
+<p>控制设备：DriverEntry中创建，接收自己客户端的IRP </p>
+<p>过滤设备：绑定的时候创建，在设备栈上接收其他R3程序的IRP </p>
+<p><strong>驱动和设备的关系：</strong></p>
+<p>设备对象是驱动对象的具体实例：<strong>驱动对象</strong>定义驱动程序的属性和行为（例如处理各种IRP的函数），<strong>设备对象</strong>是驱动控制的具体设备，实际接收和处理IO请求。一个驱动对象可以管理多个设备对象，每个设备对象代表一个独立的硬件或虚拟设备。 </p>
+<h2 id="文件系统和对应设备"><a href="#文件系统和对应设备" class="headerlink" title="文件系统和对应设备"></a>文件系统和对应设备</h2><p>在 Windows上，大家熟知的两种文件系统是FAT32和NTFS。FAT32的驱动在 Windows下叫作 fastfat.sys，NTFS 的驱动在 Windows 下叫作 ntfs.sys。这两个文件都在 Windows 系统目录中的 drivers目录下。</p>
+<p>像FAT32、NTFS这样的文件系统(FileSystem，FS)，主要生成两类设备。首先文件系统驱动本身往往生成一个控制设备(CDO)，这个设备的主要任务是修改整个驱动的内部配置。因此，一般地说，一个文件系统只对应一个CDO。</p>
+<p>另一种设备是这个文件系统的卷设备。一般一个卷对应一个逻辑盘。</p>
+<p>文件系统控制设备用来动态地生成卷设备，对于卷中文件的操作，都会发送到卷设备而不是文件系统控制设备，文件系统控制设备是用来全局管理文件系统的</p>
+<h2 id="创建过滤驱动代码"><a href="#创建过滤驱动代码" class="headerlink" title="创建过滤驱动代码"></a>创建过滤驱动代码</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义 DEVICE_EXTENSION 结构，用于存储设备特定信息</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_DEVICE_EXTENSION</span> &#123;</span><br><span class="line">    PDEVICE_OBJECT NextDevice;  <span class="comment">// 指向下层设备对象</span></span><br><span class="line">&#125; DEVICE_EXTENSION, *PDEVICE_EXTENSION;</span><br><span class="line"></span><br><span class="line"><span class="comment">// IRP分发例程</span></span><br><span class="line"><span class="function">NTSTATUS <span class="title">DispatchPassThrough</span><span class="params">(PDEVICE_OBJECT DeviceObject, PIRP Irp)</span> </span>&#123;</span><br><span class="line">    PDEVICE_EXTENSION deviceExtension = (PDEVICE_EXTENSION)DeviceObject-&gt;DeviceExtension;</span><br><span class="line">    <span class="built_in">IoSkipCurrentIrpStackLocation</span>(Irp);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">IoCallDriver</span>(deviceExtension-&gt;NextDevice, Irp);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 卸载驱动</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">UnloadDriver</span><span class="params">(PDRIVER_OBJECT DriverObject)</span> </span>&#123;</span><br><span class="line">    PDEVICE_OBJECT deviceObject = DriverObject-&gt;DeviceObject;</span><br><span class="line"></span><br><span class="line">    PDEVICE_EXTENSION deviceExtension = (PDEVICE_EXTENSION)deviceObject-&gt;DeviceExtension;</span><br><span class="line">    <span class="keyword">if</span> (deviceExtension-&gt;NextDevice)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">IoDetachDevice</span>(deviceExtension-&gt;NextDevice);</span><br><span class="line">    &#125;</span><br><span class="line">    PDEVICE_OBJECT nextDevice = deviceObject-&gt;NextDevice;</span><br><span class="line">    <span class="built_in">IoDeleteDevice</span>(deviceObject);</span><br><span class="line">    deviceObject = nextDevice;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;FilterDriver: Driver Unloaded.\n&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 驱动入口</span></span><br><span class="line"><span class="function">NTSTATUS <span class="title">DriverEntry</span><span class="params">(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    UNICODE_STRING targetDevice = <span class="built_in">RTL_CONSTANT_STRING</span>(<span class="string">L&quot;\\Device\\TestDevice&quot;</span>);</span><br><span class="line">    PDEVICE_OBJECT filterDevice = <span class="literal">NULL</span>;</span><br><span class="line">    PDEVICE_EXTENSION deviceExtension;</span><br><span class="line">    NTSTATUS status;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;FilterDriver: Driver Loaded.\n&quot;</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建过滤设备对象</span></span><br><span class="line">    status = <span class="built_in">IoCreateDevice</span>(</span><br><span class="line">        DriverObject,</span><br><span class="line">        <span class="built_in">sizeof</span>(DEVICE_EXTENSION),  <span class="comment">// 分配扩展</span></span><br><span class="line">        <span class="literal">NULL</span>,</span><br><span class="line">        FILE_DEVICE_UNKNOWN,</span><br><span class="line">        <span class="number">0</span>,</span><br><span class="line">        FALSE,</span><br><span class="line">        &amp;filterDevice</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">NT_SUCCESS</span>(status))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">KdPrint</span>((<span class="string">&quot;FilterDriver: Failed to create filter device.\n&quot;</span>));</span><br><span class="line">        <span class="keyword">return</span> status;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化设备扩展并设置为设备对象的扩展</span></span><br><span class="line">    deviceExtension = (PDEVICE_EXTENSION)filterDevice-&gt;DeviceExtension;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置驱动的分发例程</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt;= IRP_MJ_MAXIMUM_FUNCTION; i++) </span><br><span class="line">    &#123;</span><br><span class="line">        DriverObject-&gt;MajorFunction[i] = DispatchPassThrough;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置驱动卸载例程</span></span><br><span class="line">    DriverObject-&gt;DriverUnload = UnloadDriver;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取目标设备并附加</span></span><br><span class="line">    status = <span class="built_in">IoAttachDevice</span>(filterDevice, &amp;targetDevice, &amp;deviceExtension-&gt;NextDevice);</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">NT_SUCCESS</span>(status))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">KdPrint</span>((<span class="string">&quot;FilterDriver: Failed to attach to target device.\n&quot;</span>));</span><br><span class="line">        <span class="built_in">IoDeleteDevice</span>(filterDevice);</span><br><span class="line">        <span class="keyword">return</span> status;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;FilterDriver: Attached to /Device/TestDevice successfully.\n&quot;</span>));</span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>注意的是要创建一下设备扩展</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_DEVICE_EXTENSION</span> </span><br><span class="line">&#123;</span><br><span class="line">    PDEVICE_OBJECT NextDevice;  <span class="comment">// 指向下层设备对象</span></span><br><span class="line">&#125; DEVICE_EXTENSION, *PDEVICE_EXTENSION;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>然后在这里可以获取目标设备对象指针</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">status = <span class="built_in">IoAttachDevice</span>(filterDevice, &amp;targetDevice, &amp;deviceExtension-&gt;NextDevice);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>然后在过滤驱动中就可以把这个IRP往下分发，<code>NextDevice</code>就来自<code>DEVICE_EXTENSION</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// IRP分发例程</span></span><br><span class="line"><span class="function">NTSTATUS <span class="title">DispatchPassThrough</span><span class="params">(PDEVICE_OBJECT DeviceObject, PIRP Irp)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PDEVICE_EXTENSION deviceExtension = (PDEVICE_EC++XTENSION)DeviceObject-&gt;DeviceExtension;</span><br><span class="line">    <span class="built_in">IoSkipCurrentIrpStackLocation</span>(Irp);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">IoCallDriver</span>(deviceExtension-&gt;NextDevice, Irp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="分发IRP函数"><a href="#分发IRP函数" class="headerlink" title="分发IRP函数"></a>分发IRP函数</h2><p>过滤驱动有一个很重要的点，就是判断是来自自己设备的IRP，还是来自其他客户端的IRP，如果是自己的IRP，就自己处理，一定不能往下分发IRP，如果是拦截来的IRP，就可以选择是否往下发</p>
+<p>如何判断是来自自己客户端的还是其他客户端的IRP呢？直接将传进来的<code>PDEVICE_OBJECT DeviceObject</code>和在<code>DriverEntry</code>创建的设备对象做对比（做成一个全局变量）,如果相同，就是自己客户端的IRP，如果不是，那么就是别人客户端发来的IRP，说明需要拦截处理，并传递给下一个IRP栈链的下一个设备</p>
+<h2 id="Sfliter框架监控移动存储设备原理"><a href="#Sfliter框架监控移动存储设备原理" class="headerlink" title="Sfliter框架监控移动存储设备原理"></a>Sfliter框架监控移动存储设备原理</h2><p>比较知名的文件过滤框架有Filemon，Slifter，Minifilter</p>
+<p>其中Filemon和Sfliter虽然已经不是主流，但是仍然可以学习</p>
+<p>Filemon只监控固定磁盘，对于移动硬盘，U盘无法感知</p>
+<p>Sfilter可以监控到移动硬盘，U盘</p>
+<p>那么Sfilter是如何监控到移动硬盘，U盘这类的呢？毕竟这些卷设备是后来在任何时间随时插入设备的，并不是在一开始就可以绑定过滤驱动</p>
+<p>这里一共涉及到两次创建过滤驱动设备对象</p>
+<p>设备对象是用来处理IRP请求的具体实例，而具体的IRP请求处理函数是写在驱动里面的<br>也就是说，两次创建的设备对象的IRP处理函数是共享的，但是并不冲突，因为第一次创建的设备对象只用到<code>IRP_MJ_FILE_SYSTEM_CONTROL</code>，第二次创建的设备对象用使用其他的IRP请求函数</p>
+<p><strong>第一次创建过滤驱动设备对象：</strong></p>
+<p>第一次创建设备对象是为了获取到文件系统设备对象</p>
+<p>首先注册一个 注册文件系统变更回调  <code>IoRegisterFsRegistrationChange</code>, 以便在文件系统驱动（如 NTFS）加载时，过滤驱动能够收到通知。 </p>
+<p>一旦我们进入这个回调，我们可以从这个回调的参数<code>VOID MyFsNotification(PDEVICE_OBJECT DeviceObject, BOOLEAN FsActive) </code>，<code>DeviceObject</code>拿到对应的文件系统设备对象</p>
+<p>此时，我们需要注册一个过滤驱动设备对象，用我们在<code>DriverEntry</code>保存的驱动对象，注册过滤驱动设备对象，让这个过滤驱动设备对象使用我们自己的驱动注册的IRP例程处理，在这里是<code>IRP_MJ_FILE_SYSTEM_CONTROL</code>，具体来说还要再细分是否是 <code>IRP_MN_MOUNT_VOLUME</code>。</p>
+<p><strong>第二次创建过滤驱动设备对象:</strong></p>
+<p>值得注意的是，我们在<code>IRP_MJ_FILE_SYSTEM_CONTROL</code>处理函数里面，我们第二次创建的过滤驱动设备对象将要附加到卷设备对象上，所以在<code>IRP_MJ_FILE_SYSTEM_CONTROL</code>处理函数，我们的目标是获取到卷设备对象，但是一开始进去这个IRP处理拿到的<code>DeviceObject</code>是还没初始化好的卷设备对象，我们需要注册一个完成例程函数，并将IRP下发到底层的驱动设备进行对卷设备的初始化，然后在完成例程函数里面，拿到初始化好的卷设备对象，拿到之后，才是正式第二次创建过滤驱动设备对象进行附加到卷设备对象</p>
+<h2 id="一些实现的细节"><a href="#一些实现的细节" class="headerlink" title="一些实现的细节"></a>一些实现的细节</h2><h3 id="关于FastIO"><a href="#关于FastIO" class="headerlink" title="关于FastIO"></a>关于FastIO</h3><blockquote>
+<p>Fast I&#x2F;O 是一种绕过常规 I&#x2F;O 请求路径的快速数据访问机制，它允许文件系统直接完成一些常用操作（如读取、写入等），而不经过驱动的 IRP 调度路径。对于文件系统过滤驱动来说，这样可能导致无法截获或处理所有的 I&#x2F;O 操作。 </p>
+</blockquote>
+<p>Sfliter会禁用FastIO，要求全部数据都走IRP请求，确保监控到对于文件的全部操作</p>
+<h3 id="Skip和Copy的区别"><a href="#Skip和Copy的区别" class="headerlink" title="Skip和Copy的区别"></a>Skip和Copy的区别</h3><p>关于<code>IoCopyCurrentIrpStackLocationToNext</code>和<code>IoSkipCurrentIrpStackLocation(Irp)</code>的区别</p>
+<p>每一层驱动会有自己独立的 IRP 堆栈位置（称为 “IRP stack location”）。当一个过滤驱动拦截到 IRP 请求时，它实际上并不是“接管”了别人的 IRP，而是“共享”了这个 IRP。 </p>
+<p>当过滤驱动调用 <code>IoSkipCurrentIrpStackLocation(Irp)</code> 时，它跳过的是 <strong>当前堆栈位置</strong> 的作用，而 <strong>不是跳过下层驱动的堆栈位置</strong>。实际上，它只是告知系统当前驱动无需对堆栈位置做任何更改或检查，直接将 IRP 传递给下一层驱动即可。 </p>
+<p>当不需要设置完成例程函数的时候，调用<code>IoSkipCurrentIrpStackLocation(Irp)</code>就够了</p>
+<p>但是如果设置了完成例程函数，那么就需要调用<code>IoCopyCurrentIrpStackLocationToNext</code>，将完成例程函数和当前IRP堆栈上下文保存在下一层驱动的IRP堆栈，<strong>记住，这里不是覆盖下一层的驱动IRP堆栈，而是把信息保存在下一层驱动IRP堆栈</strong></p>
+<blockquote>
+<p>完成例程本来就是设置在当前堆栈的下一层堆栈里，这相当于是一个规范，也可以用实际的IRP的返回来理解。在完成例程里，根据返回不同的状态值，IRP的控制流可能会发生相应的变化，这样，下层堆栈执行完成例程后，会将IRP的控制权交付给本层堆栈。从这个意义上讲，完成例程，只能放在下层堆栈，实际上，设计也是这样的。 2，拷贝当前堆栈的内容到下层堆栈，只是为了保证执行环境一样。</p>
+</blockquote>
+<p><strong>最下层的驱动如果设置了完成例程函数，它如何调用<code>Iocopycurrentirpstacklocationtonext</code>?</strong></p>
+<p>最下层驱动实际上不需要也不应该调用<code>IoCopyCurrentIrpStackLocationToNext</code>。这是因为在驱动程序的堆栈中，最下层驱动是直接与硬件交互的层级，它通常负责完成I&#x2F;O请求，并且不需要将IRP传递给更下一层的驱动程序。</p>
+<p><code>IoSkipCurrentIrpStackLocation(Irp)</code>：无设置完成例程</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">NTSTATUS status;</span><br><span class="line"><span class="comment">// 假设 CurrentDeviceObject 是当前驱动的设备对象</span></span><br><span class="line"><span class="comment">// 和 NextDeviceObject 是下一层驱动的设备对象</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 跳过当前的 IRP 堆栈位置</span></span><br><span class="line"><span class="built_in">IoSkipCurrentIrpStackLocation</span>(Irp);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用下一层驱动的 IRP 处理</span></span><br><span class="line">status = <span class="built_in">IoCallDriver</span>(NextDeviceObject, Irp);</span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>Iocopycurrentirpstacklocationtonext(Irp)</code>：设置了完成例程</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">IoCopyCurrentIrpStackLocationToNext</span>(Irp);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置完成例程</span></span><br><span class="line"><span class="built_in">IoSetCompletionRoutine</span>(Irp, CompletionRoutine, <span class="literal">NULL</span>, TRUE, TRUE, TRUE);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 先将 IRP 发送给目标设备</span></span><br><span class="line">PDEVICE_EXTENSION deviceExtension = (PDEVICE_EXTENSION)DeviceObject-&gt;DeviceExtension;</span><br><span class="line"></span><br><span class="line">NTSTATUS status = <span class="built_in">IoCallDriver</span>(deviceExtension-&gt;TargetDeviceObject, Irp);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回状态</span></span><br><span class="line"><span class="keyword">return</span> status;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<p>还有配合事件对象的：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 完成例程函数</span></span><br><span class="line"><span class="function">NTSTATUS <span class="title">MyCompletionRoutine</span><span class="params">(PDEVICE_OBJECT DeviceObject, PIRP Irp, PVOID Context)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(DeviceObject);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取传入的事件对象指针</span></span><br><span class="line">    PKEVENT event = (PKEVENT)Context;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 唤醒等待的线程</span></span><br><span class="line">    <span class="built_in">KeSetEvent</span>(event, IO_NO_INCREMENT, FALSE);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 返回 STATUS_MORE_PROCESSING_REQUIRED 需要对 IRP 的进一步处理</span></span><br><span class="line">    <span class="keyword">return</span> STATUS_MORE_PROCESSING_REQUIRED;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS <span class="title">MySynchronousIoRequest</span><span class="params">(PDEVICE_OBJECT DeviceObject, PIRP Irp)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    KEVENT event;</span><br><span class="line">    NTSTATUS status;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化一个事件对象</span></span><br><span class="line">    <span class="built_in">KeInitializeEvent</span>(&amp;event, NotificationEvent, FALSE);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 复制当前 IRP 堆栈位置到下一个位置</span></span><br><span class="line">    <span class="built_in">IoCopyCurrentIrpStackLocationToNext</span>(Irp);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置完成例程，并传入事件对象指针作为上下文</span></span><br><span class="line">    <span class="built_in">IoSetCompletionRoutine</span>(Irp, MyCompletionRoutine, &amp;event, TRUE, TRUE, TRUE);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将 IRP 发送到下层驱动</span></span><br><span class="line">    status = <span class="built_in">IoCallDriver</span>(DeviceObject, Irp);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (status == STATUS_PENDING) </span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 如果 IRP 是异步处理的，等待事件被唤醒</span></span><br><span class="line">        <span class="built_in">KeWaitForSingleObject</span>(&amp;event, Executive, KernelMode, FALSE, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取 IRP 完成后的状态</span></span><br><span class="line">        status = Irp-&gt;IoStatus.Status;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 返回最终的操作状态</span></span><br><span class="line">    <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里解释一下：</p>
+<p><code>status = IoCallDriver(DeviceObject, Irp);</code>当调用这个代码的时候，有两种情况</p>
+<p>如果下层驱动<strong>同步完成</strong>，即直接处理并返回成功状态（如 <code>STATUS_SUCCESS</code>），那么 <code>IoCallDriver</code> 会立即返回，随后 <code>MySynchronousIoRequest</code> 函数继续执行接下来的代码。</p>
+<p>如果下层驱动<strong>异步完成</strong>，即下层驱动返回 <code>STATUS_PENDING</code>，<code>IoCallDriver</code> 也会立即返回 <code>STATUS_PENDING</code>，然后 <code>MySynchronousIoRequest</code> 会调用 <code>KeWaitForSingleObject</code> 等待事件对象被信号化。</p>
+<h3 id="驱动和完成例程函数的返回状态"><a href="#驱动和完成例程函数的返回状态" class="headerlink" title="驱动和完成例程函数的返回状态"></a>驱动和完成例程函数的返回状态</h3><p>驱动需要返回状态，包括但不限于 <code>STATUS_SUCCESS</code>   <code>STATUS_PENDING</code>   <code>STATUS_UNSUCCESSFUL</code>  <code>STATUS_ACCESS_DENIED</code>、<code>STATUS_BUFFER_TOO_SMALL</code>、<code>STATUS_INVALID_PARAMETER</code>  </p>
+<p>完成例程函数也需要返回状态，一般就两种，<code>STATUS_SUCCESS</code>， <code>STATUS_MORE_PROCESSING_REQUIRED</code> </p>
+<p><code>STATUS_MORE_PROCESSING_REQUIRED</code> 确保了 <code>IRP</code> 不会被系统自动完成，从而允许调用代码继续访问和操作该 <code>IRP</code>。如果在完成例程中返回 <code>STATUS_SUCCESS</code>，那么 <code>IRP</code> 会被系统标记为已完成，资源可能被释放，从而导致调用代码无法再安全地访问该 <code>IRP</code>。 </p>
+<p>所以返回<code>STATUS_MORE_PROCESSING_REQUIRED</code>意味着重新获得IRP的控制权，可以重修选择下发还是终结IRP</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/Sfilter/">http://example.com/Sfilter/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%96%87%E4%BB%B6%E8%BF%87%E6%BB%A4/">文件过滤</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/IRP%E7%9A%84%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/" title="IRP的深入理解(持续更新)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">IRP的深入理解(持续更新)</div></div></a></div><div class="next-post pull-right"><a href="/%E6%9F%A5%E7%9C%8BIRP%E6%B3%A8%E5%86%8C%E5%87%BD%E6%95%B0/" title="查看设备对象IRP请求处理函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">查看设备对象IRP请求处理函数</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Sfilter%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">Sfilter的实现原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-number">1.1.</span> <span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E5%92%8C%E5%AF%B9%E5%BA%94%E8%AE%BE%E5%A4%87"><span class="toc-number">1.2.</span> <span class="toc-text">文件系统和对应设备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E8%BF%87%E6%BB%A4%E9%A9%B1%E5%8A%A8%E4%BB%A3%E7%A0%81"><span class="toc-number">1.3.</span> <span class="toc-text">创建过滤驱动代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%8F%91IRP%E5%87%BD%E6%95%B0"><span class="toc-number">1.4.</span> <span class="toc-text">分发IRP函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Sfliter%E6%A1%86%E6%9E%B6%E7%9B%91%E6%8E%A7%E7%A7%BB%E5%8A%A8%E5%AD%98%E5%82%A8%E8%AE%BE%E5%A4%87%E5%8E%9F%E7%90%86"><span class="toc-number">1.5.</span> <span class="toc-text">Sfliter框架监控移动存储设备原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E5%AE%9E%E7%8E%B0%E7%9A%84%E7%BB%86%E8%8A%82"><span class="toc-number">1.6.</span> <span class="toc-text">一些实现的细节</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E4%BA%8EFastIO"><span class="toc-number">1.6.1.</span> <span class="toc-text">关于FastIO</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Skip%E5%92%8CCopy%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.6.2.</span> <span class="toc-text">Skip和Copy的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A9%B1%E5%8A%A8%E5%92%8C%E5%AE%8C%E6%88%90%E4%BE%8B%E7%A8%8B%E5%87%BD%E6%95%B0%E7%9A%84%E8%BF%94%E5%9B%9E%E7%8A%B6%E6%80%81"><span class="toc-number">1.6.3.</span> <span class="toc-text">驱动和完成例程函数的返回状态</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

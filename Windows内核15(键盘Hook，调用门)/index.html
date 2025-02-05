@@ -1,0 +1,281 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows内核（15）——键盘Hook，调用门 | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windwos内核通过IDT Hook键盘IRETD（Interrupt Return Double-word）是 x86 架构中的一条汇编指令，用于从中断或异常处理程序中返回到调用程序。  当一个中断或异常发生时，CPU 会将当前的 EFLAGS 寄存器、CS（代码段）寄存器和 EIP（指令指针）压入堆栈，并跳转到中断处理程序的入口地址。 当中断处理程序完成时，IRETD 指令会从堆栈中弹出这些">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows内核（15）——键盘Hook，调用门">
+<meta property="og:url" content="http://example.com/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Windwos内核通过IDT Hook键盘IRETD（Interrupt Return Double-word）是 x86 架构中的一条汇编指令，用于从中断或异常处理程序中返回到调用程序。  当一个中断或异常发生时，CPU 会将当前的 EFLAGS 寄存器、CS（代码段）寄存器和 EIP（指令指针）压入堆栈，并跳转到中断处理程序的入口地址。 当中断处理程序完成时，IRETD 指令会从堆栈中弹出这些">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-08-20T14:44:00.000Z">
+<meta property="article:modified_time" content="2024-08-20T14:44:00.000Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Windows内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows内核（15）——键盘Hook，调用门',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-08-20 22:44:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Windows内核（15）——键盘Hook，调用门</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-08-20T14:44:00.000Z" title="发表于 2024-08-20 22:44:00">2024-08-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-08-20T14:44:00.000Z" title="更新于 2024-08-20 22:44:00">2024-08-20</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Windows内核（15）——键盘Hook，调用门"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Windwos内核"><a href="#Windwos内核" class="headerlink" title="Windwos内核"></a>Windwos内核</h1><h2 id="通过IDT-Hook键盘"><a href="#通过IDT-Hook键盘" class="headerlink" title="通过IDT Hook键盘"></a>通过IDT Hook键盘</h2><p><code>IRETD</code>（Interrupt Return Double-word）是 x86 架构中的一条汇编指令，用于从中断或异常处理程序中返回到调用程序。</p>
+<ul>
+<li>当一个中断或异常发生时，CPU 会将当前的 EFLAGS 寄存器、CS（代码段）寄存器和 EIP（指令指针）压入堆栈，并跳转到中断处理程序的入口地址。</li>
+<li>当中断处理程序完成时，<code>IRETD</code> 指令会从堆栈中弹出这些值并恢复它们，返回到中断发生前的状态。</li>
+</ul>
+<p>当你 Hook 一个中断函数时，通常会使用“裸函数”（Naked Function），这是因为中断处理程序具有特殊的要求，不允许编译器在函数的入口和退出时自动插入额外的代码。这些额外的代码可能包括保存和恢复寄存器、设置堆栈帧等常规操作。为了确保中断处理程序的行为符合预期，裸函数就显得非常重要。 </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">__declspec(naked) <span class="function"><span class="type">void</span> <span class="title">KeyboardProc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    __asm&#123;</span><br><span class="line">		pushad</span><br><span class="line">       	pushf</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//写入代码</span></span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;KeyboardProc\n&quot;</span>));</span><br><span class="line">    </span><br><span class="line">    __asm&#123;</span><br><span class="line">		popf</span><br><span class="line">       	popad</span><br><span class="line">        iretd<span class="comment">//或者jmp OldKeyProc</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Hook键盘中断的过程：</p>
+<ol>
+<li>保存旧的中断函数</li>
+<li>写上自己的函数Proc</li>
+<li>在Unload函数上面替换回原来的KeyProc</li>
+</ol>
+<p>以下是Hook键盘和UnHook的代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">VOID <span class="title">HookInterruptOnAllCPUs</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    KAFFINITY affinityMask;</span><br><span class="line">    ULONG numCPUs = <span class="built_in">KeQueryActiveProcessorCount</span>(<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (ULONG i = <span class="number">0</span>; i &lt; numCPUs; i++) &#123;</span><br><span class="line">        affinityMask = (KAFFINITY)(<span class="number">1ULL</span> &lt;&lt; i);</span><br><span class="line">        <span class="built_in">KeSetSystemAffinityThread</span>(affinityMask);</span><br><span class="line"></span><br><span class="line">        IDTR idtr;</span><br><span class="line">        __asm</span><br><span class="line">        &#123;</span><br><span class="line">            sidt idtr;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> IDT_Base = <span class="built_in">MAKELONG</span>(idtr.LowIDTBase, idtr.HiIDTBase);</span><br><span class="line"></span><br><span class="line">        m_InterruptGateDescriptor_ptr = (InterruptGateDescriptor**)(IDT_Base);</span><br><span class="line"></span><br><span class="line">        Old_KeyProc[i] = (m_InterruptGateDescriptor_ptr[<span class="number">0x93</span>]-&gt;offset_high) &lt;&lt; <span class="number">16</span>;</span><br><span class="line">        Old_KeyProc[i] += m_InterruptGateDescriptor_ptr[<span class="number">0x93</span>]-&gt;offset_low;</span><br><span class="line"></span><br><span class="line">        __asm</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//; 关闭WP标志位</span></span><br><span class="line">            mov eax, cr0</span><br><span class="line">            <span class="keyword">and</span> eax, <span class="keyword">not</span> <span class="number">0x10000</span></span><br><span class="line">            mov cr0, eax</span><br><span class="line">        &#125;</span><br><span class="line">        m_InterruptGateDescriptor_ptr[<span class="number">0x31</span>]-&gt;offset_low = (<span class="type">unsigned</span> <span class="type">int</span>)KeyboardProc &amp; <span class="number">0xffff</span>;</span><br><span class="line">        m_InterruptGateDescriptor_ptr[<span class="number">0x31</span>]-&gt;offset_high = ((<span class="type">unsigned</span> <span class="type">int</span>)KeyboardProc &amp; <span class="number">0xffff0000</span>) &gt;&gt; <span class="number">16</span>;</span><br><span class="line">        __asm</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//; 恢复WP标志位</span></span><br><span class="line">            mov eax, cr0</span><br><span class="line">            <span class="keyword">or</span> eax, <span class="number">0x10000</span></span><br><span class="line">            mov cr0, eax</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 恢复线程的原始 CPU 亲和性</span></span><br><span class="line">    <span class="built_in">KeRevertToUserAffinityThread</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">UnHookInterruptOnAllCPUs</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    KAFFINITY affinityMask;</span><br><span class="line">    ULONG numCPUs = <span class="built_in">KeQueryActiveProcessorCount</span>(<span class="literal">NULL</span>);</span><br><span class="line">    KIRQL oldIrql;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (ULONG i = <span class="number">0</span>; i &lt; numCPUs; i++) &#123;</span><br><span class="line">        affinityMask = (KAFFINITY)(<span class="number">1ULL</span> &lt;&lt; i);</span><br><span class="line">        <span class="built_in">KeSetSystemAffinityThread</span>(affinityMask);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 提升到 HIGH_LEVEL 以禁用中断</span></span><br><span class="line">        <span class="built_in">KeRaiseIrql</span>(HIGH_LEVEL, &amp;oldIrql);</span><br><span class="line"></span><br><span class="line">        IDTR idtr;</span><br><span class="line">        __asm &#123;</span><br><span class="line">            sidt idtr;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> IDT_Base = <span class="built_in">MAKELONG</span>(idtr.LowIDTBase, idtr.HiIDTBase);</span><br><span class="line"></span><br><span class="line">        m_InterruptGateDescriptor_ptr = (InterruptGateDescriptor**)(IDT_Base);</span><br><span class="line"></span><br><span class="line">        __asm</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//; 关闭WP标志位</span></span><br><span class="line">            mov eax, cr0</span><br><span class="line">            <span class="keyword">and</span> eax, <span class="keyword">not</span> <span class="number">0x10000</span></span><br><span class="line">            mov cr0, eax</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 确保地址计算和赋值是正确的</span></span><br><span class="line">        m_InterruptGateDescriptor_ptr[<span class="number">0x31</span>]-&gt;offset_low = Old_KeyProc[i] &amp; <span class="number">0xffff</span>;</span><br><span class="line">        m_InterruptGateDescriptor_ptr[<span class="number">0x31</span>]-&gt;offset_high = (Old_KeyProc[i] &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xffff</span>;</span><br><span class="line"></span><br><span class="line">        __asm</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//; 恢复WP标志位</span></span><br><span class="line">            mov eax, cr0</span><br><span class="line">            <span class="keyword">or</span> eax, <span class="number">0x10000</span></span><br><span class="line">            mov cr0, eax</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 恢复原始 IRQL</span></span><br><span class="line">        <span class="built_in">KeLowerIrql</span>(oldIrql);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 恢复线程的原始 CPU 亲和性</span></span><br><span class="line">    <span class="built_in">KeRevertToUserAffinityThread</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>如果我们要知道键盘按下了什么，这就需要去键盘的特定端口拿扫描码：</p>
+<p> <strong><code>in</code> 指令</strong>：从指定的 I&#x2F;O 端口读取数据到 CPU 的寄存器中。<br> <strong><code>out</code> 指令</strong>：将 CPU 寄存器中的数据写入到指定的 I&#x2F;O 端口。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">__asm</span><br><span class="line">&#123;</span><br><span class="line">	in al,60h #从端口 0x60 读取一个字节的数据，并存储在寄存器 al 中。</span><br><span class="line">	mov Scancode,al</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>当然这会出现一个问题，扫描码只能被拿一次，如果我们再jmp到原来的keyproc，那么原来的KeyProc将会拿不到扫描码，所以我们要人工塞入扫描码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mov al,0d2h</span><br><span class="line">out 64h,al#当你向端口 0x64 发送 0xD2 时，控制器就知道你要传递一个字节的数据给连接的 PS/2 设备。</span><br><span class="line">mov al,ScanCode</span><br><span class="line">out 60,al</span><br></pre></td></tr></table></figure>
+
+
+
+<p>但是IDT Hook并不流行，因为想写兼容性好比较难。。。</p>
+<p>还有一种方法，是去从原来的KeyProc拿，后续会说</p>
+<h2 id="调用门"><a href="#调用门" class="headerlink" title="调用门"></a>调用门</h2><p>首先调用门不会引起进程切换</p>
+<p><strong>IDT</strong> 是专门用于处理中断和异常的，适用于中断门和陷阱门，而<strong>调用门</strong>设计用于在不同特权级别间执行函数调用，存储在 GDT 或 LDT 中。 </p>
+<p>调用门用于在不同特权级之间实现受控的程序控制转移  本质上，它只是一个描述符，一个不同于代码段和数据段的描述符，可以安装在GDT或者LGT中，但是不能安装在IDT（中断描述符表）中。 </p>
+<p> 调用门描述符占用 8 字节（64 位） </p>
+<p><img src="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/1724140317571.png" alt="1724140317571"></p>
+<h3 id="字段说明："><a href="#字段说明：" class="headerlink" title="字段说明："></a>字段说明：</h3><ol>
+<li><strong>Offset 15:0</strong>（16 位）：<ul>
+<li>描述符低 16 位的目标代码段偏移地址。</li>
+</ul>
+</li>
+<li><strong>Selector</strong>（16 位）：<ul>
+<li>目标代码段选择子（Segment Selector），指向 GDT 或 LDT 中的一个代码段描述符。</li>
+</ul>
+</li>
+<li><strong>Param Count</strong>（5 位）：<ul>
+<li>参数数量（Parameter Count），指定在调用门使用时，传递给目标代码段的参数数量。这些参数从调用门调用者的堆栈复制到目标代码段的堆栈中。参数是2^5&#x3D;32个参数。</li>
+</ul>
+</li>
+<li><strong>Reserved</strong>（3 位）：<ul>
+<li>保留位，通常为 0。</li>
+</ul>
+</li>
+<li><strong>Type</strong>：这是一个 4 位的字段，用于表示调用门的类型。对于调用门，它的值应该是 <code>1100</code>（对应 16 位调用门）或 <code>1110</code>（对应 32 位调用门）。该字段在描述符的低字节中。 </li>
+<li><strong>s：</strong>区别系统段还是数据段，0是系统段</li>
+<li><strong>DPL</strong>（2 位）：<ul>
+<li>描述符特权级别（Descriptor Privilege Level），定义了调用门的特权级别。调用门的 DPL 值表示可以调用此门的最低权限级别。</li>
+</ul>
+</li>
+<li><strong>P</strong>（1 位）：<ul>
+<li>存在位（Present bit），如果为 1，表示描述符有效；如果为 0，表示描述符无效。</li>
+</ul>
+</li>
+<li><strong>Offset 31:16</strong>（16 位）：<ul>
+<li>描述符高 16 位的目标代码段偏移地址。</li>
+</ul>
+</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(push, 1)  <span class="comment">// 强制1字节对齐</span></span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">CallGateDescriptor</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> offset_low;     <span class="comment">// 目标代码段偏移地址的低 16 位</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> selector;       <span class="comment">// 目标代码段的段选择子</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  param_count : <span class="number">5</span>; <span class="comment">// 参数数量</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  reserved : <span class="number">3</span>; <span class="comment">// 保留位（通常为 0）</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  Type : <span class="number">4</span>;<span class="comment">//属性   1110（对应 32 位调用门）</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  s : <span class="number">1</span>;<span class="comment">//0系统段 1数据段存储段</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  dpl : <span class="number">2</span>; <span class="comment">// 描述符特权级别（DPL）</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  present : <span class="number">1</span>; <span class="comment">// 存在位（P）</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> offset_high;    <span class="comment">// 目标代码段偏移地址的高 16 位</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(pop)</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>调用门的使用</strong></p>
+<p>使用调用门时，系统会从当前堆栈复制参数到目标堆栈，并跳转到目标代码段指定的入口地址，完成跨权限级别的调用。调用门主要用于特权级别之间的受控调用，比如从用户模式调用到内核模式。</p>
+<h3 id="特权级检查规则"><a href="#特权级检查规则" class="headerlink" title="特权级检查规则"></a>特权级检查规则</h3><p>在通过调用门进行特权级别转换时，CPU 会依次检查以下内容：</p>
+<ol>
+<li><strong>CPL</strong>（当前特权级），由当前代码段的 CS 寄存器的低 2 位决定。</li>
+<li><strong>RPL</strong>（请求特权级），由调用门选择子的低 2 位决定。</li>
+<li><strong>调用门描述符的 DPL</strong>，确保调用者的有效特权级（CPL 和 RPL）不高于调用门的 DPL。</li>
+<li><strong>目标代码段描述符的 DPL</strong>，确保调用者的 CPL 不高于目标段的 DPL。</li>
+<li><strong>目标代码段描述符的 C 位</strong>，决定是否允许一致性代码段在更低特权级别下被执行。</li>
+</ol>
+<p>需要说明的是：如果通过调用门把控制转移到了更高特权级的非一致代码段中，那么CPL就会被设置为目标代码段的DPL值，并且会引起堆栈切换。 </p>
+<h3 id="人工造一个调用门"><a href="#人工造一个调用门" class="headerlink" title="人工造一个调用门"></a>人工造一个调用门</h3><p>1.在GDT表找一个没用的项</p>
+<p>2.三环就用 call   段选择子(末两位置为1，表示三环可以用):xxxx  （段选择子后面瞎写都行，主要就是段选择子，就是gdt表的某项）或者jmp 段选择子:0，这样就不会把三环地址返回值压入栈，也就不回来了。call的话压入的是0环的栈，会导致段寄存器要切换</p>
+<p>要切的是cs0 eip0     ss0 esp0</p>
+<p>在0环， retf返回三环，从零环的栈弹出cs3 eip3    ss3 esp3，这样就又回到了三环</p>
+<p>3.实现门描述符 （syscall dpl &#x3D; 3 ,type &#x3D; 386gate，seletor&#x3D;8）</p>
+<p>选择子填8应该是相对固定的</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/1724143131999.png" alt="1724143131999"></p>
+<p>调用流程：</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/1724140856589.png" alt="1724140856589"></p>
+<p>左边是三环的，右边是零环的，retf就回去三环了</p>
+<h3 id="模拟系统API的实现："><a href="#模拟系统API的实现：" class="headerlink" title="模拟系统API的实现："></a>模拟系统API的实现：</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">__declspec(naked) <span class="function"><span class="type">void</span> <span class="title">Syscall</span><span class="params">()</span> <span class="comment">//一定要裸函数，不然代码不可控</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    __asm</span><br><span class="line">    &#123;</span><br><span class="line">        pushad</span><br><span class="line">        <span class="comment">//pushf  不要用到pushf，不然会蓝屏</span></span><br><span class="line">        push fs</span><br><span class="line">        mov ax,<span class="number">30</span>h  <span class="comment">//给零环使用</span></span><br><span class="line">        mov fs,ax</span><br><span class="line">        </span><br><span class="line">	&#125;</span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;Syscall\n&quot;</span>));</span><br><span class="line">    __asm &#123;</span><br><span class="line">        <span class="comment">//popf</span></span><br><span class="line">        pop fs</span><br><span class="line">        popad</span><br><span class="line">        retf</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">Register_CallGate</span><span class="params">(CallGateDescriptor* CallGateDescriptor_ptr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//注册门</span></span><br><span class="line">    GDTR gdtr;</span><br><span class="line">    __asm</span><br><span class="line">    &#123;</span><br><span class="line">        sgdt gdtr</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> Base = gdtr.base;</span><br><span class="line">    GDTR* gdtr_ptr = (GDTR*)Base;</span><br><span class="line">    CallGateDescriptor* CallGateDescriptor_ptr = (CallGateDescriptor*)&amp;gdtr_ptr[<span class="number">9</span>];</span><br><span class="line">    <span class="built_in">Register_CallGate</span>(CallGateDescriptor_ptr);</span><br><span class="line">    </span><br><span class="line">    CallGateDescriptor_ptr-&gt;present = <span class="number">1</span>;<span class="comment">//表示描述符有效</span></span><br><span class="line">    CallGateDescriptor_ptr-&gt;dpl = <span class="number">3</span>; <span class="comment">//三环可以使用</span></span><br><span class="line">    CallGateDescriptor_ptr-&gt;offset_high = (<span class="type">unsigned</span> <span class="type">int</span>)Syscall &gt;&gt; <span class="number">16</span>;</span><br><span class="line">    CallGateDescriptor_ptr-&gt;offset_high = (<span class="type">unsigned</span> <span class="type">int</span>)Syscall &amp; <span class="number">0xffff</span>;</span><br><span class="line">    CallGateDescriptor_ptr-&gt;param_count = <span class="number">0</span>;<span class="comment">//参数个数为0</span></span><br><span class="line">    CallGateDescriptor_ptr-&gt;reserved = <span class="number">0</span>;</span><br><span class="line">    CallGateDescriptor_ptr-&gt;s = <span class="number">0</span>;</span><br><span class="line">    CallGateDescriptor_ptr-&gt;selector = <span class="number">8</span>;</span><br><span class="line">    CallGateDescriptor_ptr-&gt;Type = <span class="number">0xc</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意注意：</p>
+<p><strong>从三环进入零环，或者从零环进入三环，fs都得用户自己手动来切换，如果不切换，可能就会崩溃</strong></p>
+<p>另外Windbg只要产生断点异常，都会将fs改为30，方便拿参数，所以如果有时候会崩溃，要注意看fs有没有改回三环的0x3b</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/1724153322949.png" alt="1724153322949"></p>
+<p>应该是call 48h:0，但是段选择子的后2位指定0环还是三环，这里要填三环，也就是11（3）,所以应该是call 4bh:0</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/1724153481527.png" alt="1724153481527"></p>
+<p>但是编译器不让过，所以我们选择用机器码实现</p>
+<p>比如用x32dbg去做补丁</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/1724154158299.png" alt="1724154158299"></p>
+<p>如果提供了参数，如何给0环传参呢？</p>
+<p>这是三环代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;syscall begin&quot;</span> &lt;&lt; endl;</span><br><span class="line">	__asm</span><br><span class="line">	&#123;</span><br><span class="line">		push <span class="number">0x11223344</span></span><br><span class="line">		_emit <span class="number">0x9a</span></span><br><span class="line">		_emit <span class="number">0x00</span></span><br><span class="line">		_emit <span class="number">0x00</span></span><br><span class="line">		_emit <span class="number">0x00</span></span><br><span class="line">		_emit <span class="number">0x00</span></span><br><span class="line">		_emit <span class="number">0x4b</span></span><br><span class="line">		_emit <span class="number">0x00</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;syscall end&quot;</span> &lt;&lt; endl;</span><br><span class="line">	<span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在0环是可以找到对应参数的</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/1724163410254.png" alt="1724163410254"></p>
+<p>但是我们知道GDT表是有限的，那么多API，难道每一个API都需要在GDT表注册一个调用门吗？</p>
+<p>实际上可以是这样的：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//注册函数指针表,参数数量一样的做一个函数指针表</span></span><br><span class="line">SYSCALL G_Sysservice[]=&#123;</span><br><span class="line">	&amp;Syscall1,</span><br><span class="line">	&amp;Syscall2,</span><br><span class="line">	&amp;Syscall3</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">UCHAR G_SysParams[]</span><br><span class="line">&#123;</span><br><span class="line">    <span class="number">0</span>,</span><br><span class="line">    <span class="number">4</span>,</span><br><span class="line">    <span class="number">5</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="type">void</span> <span class="built_in">Syscall</span>()</span><br><span class="line">&#123;</span><br><span class="line">	__asm&#123;</span><br><span class="line">		pushad</span><br><span class="line">        push fs</span><br><span class="line">        mov ax,<span class="number">30</span>h  <span class="comment">//给零环使用</span></span><br><span class="line">        mov fs,ax</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//从栈拷贝参数</span></span><br><span class="line">        movzx ecx,byte ptr[G_SysParams+eax*<span class="number">1</span>]</span><br><span class="line">        mov ebx,ecx</span><br><span class="line">        shr ecx,<span class="number">2</span></span><br><span class="line">        sub esp,ecx</span><br><span class="line">        mov esi,edx	<span class="comment">//edx存着三环的栈</span></span><br><span class="line">        mov edi,esp</span><br><span class="line">        rep movsd</span><br><span class="line">            </span><br><span class="line">        <span class="comment">//调用函数</span></span><br><span class="line">    	call dword ptr[G_Sysservice+eax*<span class="number">4</span>];</span><br><span class="line">    </span><br><span class="line">      	add esp,ebx</span><br><span class="line">        pop fs</span><br><span class="line">        popad</span><br><span class="line">        retf</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/">http://example.com/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Windows%E5%86%85%E6%A0%B8/">Windows内核</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/Windows%E5%86%85%E6%A0%B816/" title="Windows内核（16）——探究SSDT"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Windows内核（16）——探究SSDT</div></div></a></div><div class="next-post pull-right"><a href="/Windows%E5%86%85%E6%A0%B814(%E8%A1%A5%E7%AC%94%E8%AE%B0)/" title="Windows内核（14）——补笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Windows内核（14）——补笔记</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/Windows%E5%86%85%E6%A0%B81(%E5%86%85%E6%A0%B8%E5%88%9D%E6%8E%A2&%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F)/" title="Windows内核（1）——内核初探&amp;编写第一个驱动程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-10</div><div class="title">Windows内核（1）——内核初探&amp;编写第一个驱动程序</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B810(10-10-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（10）——分页机制（10-10-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-27</div><div class="title">Windows内核（10）——分页机制（10-10-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（11）——分页机制（2-9-9-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-30</div><div class="title">Windows内核（11）——分页机制（2-9-9-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B812(%E4%BF%AE%E6%94%B9%E5%AF%B9%E6%96%B9%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98)/" title="Windows内核（12）——通过CR3修改进程内存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-03</div><div class="title">Windows内核（12）——通过CR3修改进程内存</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B814(%E8%A1%A5%E7%AC%94%E8%AE%B0)/" title="Windows内核（14）——补笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-17</div><div class="title">Windows内核（14）——补笔记</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B816/" title="Windows内核（16）——探究SSDT"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-25</div><div class="title">Windows内核（16）——探究SSDT</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windwos%E5%86%85%E6%A0%B8"><span class="toc-number">1.</span> <span class="toc-text">Windwos内核</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%9A%E8%BF%87IDT-Hook%E9%94%AE%E7%9B%98"><span class="toc-number">1.1.</span> <span class="toc-text">通过IDT Hook键盘</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E9%97%A8"><span class="toc-number">1.2.</span> <span class="toc-text">调用门</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E8%AF%B4%E6%98%8E%EF%BC%9A"><span class="toc-number">1.2.1.</span> <span class="toc-text">字段说明：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%9D%83%E7%BA%A7%E6%A3%80%E6%9F%A5%E8%A7%84%E5%88%99"><span class="toc-number">1.2.2.</span> <span class="toc-text">特权级检查规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%BA%E5%B7%A5%E9%80%A0%E4%B8%80%E4%B8%AA%E8%B0%83%E7%94%A8%E9%97%A8"><span class="toc-number">1.2.3.</span> <span class="toc-text">人工造一个调用门</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%8B%9F%E7%B3%BB%E7%BB%9FAPI%E7%9A%84%E5%AE%9E%E7%8E%B0%EF%BC%9A"><span class="toc-number">1.2.4.</span> <span class="toc-text">模拟系统API的实现：</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

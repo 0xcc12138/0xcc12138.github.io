@@ -1,0 +1,313 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows x64内核(4)——回调函数 | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windows x64内核x64内核的回调函数参考文章： 4.4 Windows驱动开发：内核监控进程与线程创建 - lyshark - 博客园  因为x64再想要去Hook例如各种门，SSDT表之类的重要数据结构变得异常困难 为了在内核模式下提供合法的扩展和拦截机制，微软提供了许多回调函数，这些回调允许驱动开发者在特定事件发生时执行自定义代码，而不必直接修改关键的内核数据结构。  还有一点，如果">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows x64内核(4)——回调函数">
+<meta property="og:url" content="http://example.com/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Windows x64内核x64内核的回调函数参考文章： 4.4 Windows驱动开发：内核监控进程与线程创建 - lyshark - 博客园  因为x64再想要去Hook例如各种门，SSDT表之类的重要数据结构变得异常困难 为了在内核模式下提供合法的扩展和拦截机制，微软提供了许多回调函数，这些回调允许驱动开发者在特定事件发生时执行自定义代码，而不必直接修改关键的内核数据结构。  还有一点，如果">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-09-10T01:02:00.000Z">
+<meta property="article:modified_time" content="2025-01-20T06:08:45.539Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Win x64内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows x64内核(4)——回调函数',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-01-20 14:08:45'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Windows x64内核(4)——回调函数</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-10T01:02:00.000Z" title="发表于 2024-09-10 09:02:00">2024-09-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-20T06:08:45.539Z" title="更新于 2025-01-20 14:08:45">2025-01-20</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Windows x64内核(4)——回调函数"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Windows-x64内核"><a href="#Windows-x64内核" class="headerlink" title="Windows x64内核"></a>Windows x64内核</h1><h2 id="x64内核的回调函数"><a href="#x64内核的回调函数" class="headerlink" title="x64内核的回调函数"></a>x64内核的回调函数</h2><p>参考文章： <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LyShark/p/17840123.html">4.4 Windows驱动开发：内核监控进程与线程创建 - lyshark - 博客园</a> </p>
+<p>因为x64再想要去Hook例如各种门，SSDT表之类的重要数据结构变得异常困难</p>
+<p>为了在内核模式下提供合法的扩展和拦截机制，微软提供了许多回调函数，这些回调允许驱动开发者在特定事件发生时执行自定义代码，而不必直接修改关键的内核数据结构。 </p>
+<p>还有一点，如果没有加载数字签名，调用以下API可能会报错，我们需要在编译选项加一些东西：<code>/INTEGRITYCHECK</code></p>
+<p><img src="/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/1725546149626.png" alt="1725546149626"></p>
+<h3 id="进程监控"><a href="#进程监控" class="headerlink" title="进程监控"></a><strong>进程监控</strong></h3><ul>
+<li><p><strong>API</strong>: <code>PsSetCreateProcessNotifyRoutine</code> &#x2F; <code>PsSetCreateProcessNotifyRoutineEx</code></p>
+</li>
+<li><p>描述:</p>
+<ul>
+<li><code>PsSetCreateProcessNotifyRoutine</code>：注册一个回调函数，当进程创建或终止时，系统会调用此回调函数。该函数已被<code>PsSetCreateProcessNotifyRoutineEx</code>替代。</li>
+<li><code>PsSetCreateProcessNotifyRoutineEx</code>：与前者类似，但提供了更多信息，如父进程ID、命令行参数等。</li>
+</ul>
+</li>
+</ul>
+<p>具体代码，用于检测任何进程的创建与卸载</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;header.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">CreateProcessNotifyRoutine</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ HANDLE ParentId,</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ HANDLE ProcessId,</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ BOOLEAN Create</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ParentId;</span><br><span class="line">    PEPROCESS Process_ptr = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="built_in">PsLookupProcessByProcessId</span>(ProcessId, &amp;Process_ptr);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (Process_ptr == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">DbgPrint</span>(<span class="string">&quot;获取进程信息失败！\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (Create)  <span class="comment">//如果是创建进程   </span></span><br><span class="line">    &#123;</span><br><span class="line">        UCHAR* processName = (UCHAR*)<span class="built_in">PsGetProcessImageFileName</span>(Process_ptr);</span><br><span class="line">        <span class="built_in">DbgPrint</span>(<span class="string">&quot;进程%s被创建\n&quot;</span>, processName);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>  <span class="comment">//如果是创建进程   </span></span><br><span class="line">    &#123;</span><br><span class="line">        UCHAR* processName = (UCHAR*)<span class="built_in">PsGetProcessImageFileName</span>(Process_ptr);</span><br><span class="line">        <span class="built_in">DbgPrint</span>(<span class="string">&quot;进程%s被卸载\n&quot;</span>, processName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS <span class="title">DriverEntry</span><span class="params">(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(RegistryPath);</span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;Create!&quot;</span>));</span><br><span class="line">    <span class="built_in">KdBreakPoint</span>();</span><br><span class="line">    <span class="comment">// 驱动程序卸载例程&amp;注册例程</span></span><br><span class="line">    DriverObject-&gt;DriverUnload = DriverUnloadRoutine;</span><br><span class="line">    <span class="comment">//创建设备</span></span><br><span class="line">    NTSTATUS status;</span><br><span class="line">    PDEVICE_OBJECT DeviceObject = <span class="literal">NULL</span>;</span><br><span class="line">    UNICODE_STRING DeviceName;</span><br><span class="line">    <span class="built_in">RtlInitUnicodeString</span>(&amp;DeviceName, <span class="string">L&quot;\\Device\\MyDevice&quot;</span>);</span><br><span class="line">    status = <span class="built_in">IoCreateDevice</span>(</span><br><span class="line">        DriverObject,                <span class="comment">// 驱动程序对象</span></span><br><span class="line">        <span class="number">0</span>,                           <span class="comment">// 设备扩展大小</span></span><br><span class="line">        &amp;DeviceName,                 <span class="comment">// 设备名称</span></span><br><span class="line">        FILE_DEVICE_UNKNOWN,         <span class="comment">// 设备类型</span></span><br><span class="line">        <span class="number">0</span>,                           <span class="comment">// 设备特征</span></span><br><span class="line">        FALSE,                       <span class="comment">// 非独占设备</span></span><br><span class="line">        &amp;DeviceObject                <span class="comment">// 返回的设备对象指针</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">NT_SUCCESS</span>(status))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">KdPrint</span>((<span class="string">&quot;Failed to create device: %X\n&quot;</span>, status));</span><br><span class="line">        <span class="keyword">return</span> status;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;Device created successfully\n&quot;</span>));</span><br><span class="line"></span><br><span class="line">    UNICODE_STRING symbolicLink = <span class="built_in">RTL_CONSTANT_STRING</span>(<span class="string">L&quot;\\??\\MyDevice_Link&quot;</span>);</span><br><span class="line">    status = <span class="built_in">IoCreateSymbolicLink</span>(&amp;symbolicLink, &amp;DeviceName);</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">NT_SUCCESS</span>(status))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">KdPrint</span>((<span class="string">&quot;Failed to create device: %X\n&quot;</span>, status));</span><br><span class="line">        <span class="keyword">return</span> status;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;Device created successfully\n&quot;</span>));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="built_in">PsSetCreateProcessNotifyRoutine</span>((_In_ PCREATE_PROCESS_NOTIFY_ROUTINE)CreateProcessNotifyRoutine, FALSE);  <span class="comment">//注册回调函数，如果为TRUE，则从通知列表中移除回调函数；如果为FALSE，则将其添加到列表中。</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">DriverUnloadRoutine</span><span class="params">(IN PDRIVER_OBJECT DriverObject)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (DriverObject-&gt;DeviceObject != <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        UNICODE_STRING symbolicLink = <span class="built_in">RTL_CONSTANT_STRING</span>(<span class="string">L&quot;\\??\\MyDevice_Link&quot;</span>);</span><br><span class="line">        <span class="built_in">IoDeleteSymbolicLink</span>(&amp;symbolicLink);</span><br><span class="line">        <span class="built_in">IoDeleteDevice</span>(DriverObject-&gt;DeviceObject);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">PsSetCreateProcessNotifyRoutine</span>((_In_ PCREATE_PROCESS_NOTIFY_ROUTINE)CreateProcessNotifyRoutine, TRUE);</span><br><span class="line">    <span class="built_in">DbgPrint</span>(<span class="string">&quot;Driver unloaded\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>如果我们需要阻止一个软件开启，我们可以通过<code>PsSetCreateProcessNotifyRoutineEx</code>进行拦截</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">VOID <span class="title">PcreateProcessNotifyRoutineEx</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    PEPROCESS Process,</span></span></span><br><span class="line"><span class="params"><span class="function">    HANDLE ProcessId,</span></span></span><br><span class="line"><span class="params"><span class="function">    PPS_CREATE_NOTIFY_INFO CreateInfo  <span class="comment">//如果是卸载进程，CreateInfo为NULL</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS <span class="title">PsSetCreateProcessNotifyRoutineEx</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  [in] PCREATE_PROCESS_NOTIFY_ROUTINE_EX NotifyRoutine,</span></span></span><br><span class="line"><span class="params"><span class="function">  [in] BOOLEAN                           Remove</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">VOID <span class="title">PcreateProcessNotifyRoutineEx</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    PEPROCESS Process,</span></span></span><br><span class="line"><span class="params"><span class="function">    HANDLE ProcessId,</span></span></span><br><span class="line"><span class="params"><span class="function">    PPS_CREATE_NOTIFY_INFO CreateInfo  <span class="comment">//如果是卸载进程，CreateInfo为NULL</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Process;</span><br><span class="line">    ProcessId;</span><br><span class="line">    CreateInfo;</span><br><span class="line">    UCHAR* processName = (UCHAR*)<span class="built_in">PsGetProcessImageFileName</span>(Process);</span><br><span class="line">    <span class="keyword">if</span> (!CreateInfo)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">KdPrint</span>((<span class="string">&quot;%s被卸载\n&quot;</span>, (<span class="type">char</span>*)processName));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(<span class="string">&quot;calc.exe&quot;</span>, (<span class="type">char</span>*)processName))</span><br><span class="line">        &#123;</span><br><span class="line">            CreateInfo-&gt;CreationStatus = <span class="number">0xC0000008</span>; <span class="comment">//一启动计算器会弹窗</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/1725588082040.png" alt="1725588082040"></p>
+<p>提一嘴，PcreateProcessNotifyRoutineEx这里的Process指向一个_EPROCESS结构体，可以通过 <code>!process 0 0</code>去获取到</p>
+<p><img src="/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/1725587356561.png" alt="1725587356561"></p>
+<p>我们通过WRK分析一下这个函数<code>PsSetCreateProcessNotifyRoutine</code></p>
+<p><img src="/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/1725589312944.png" alt="1725589312944"></p>
+<p>发现如果注册过回调函数，那么将会按照顺序进行调用</p>
+<p>而且PG保护是不会保护这玩意的，毕竟这玩意一直在变</p>
+<p>如果我们把<code>PsSetCreateProcessNotifyRoutine</code>里面的数据全抹掉，那么之前注册的回调将会全部失效</p>
+<p>例如一些杀毒软件，禁止人为的卸载，就在注册一个回调，禁止我们手动卸载。<br>这时候我们将这里面的数据全部抹掉，这时候就可以顺利地删除了</p>
+<ol start="2">
+<li><strong>线程监控</strong></li>
+</ol>
+<ul>
+<li><strong>API</strong>: <code>PsSetCreateThreadNotifyRoutine</code></li>
+<li><strong>描述</strong>: 注册一个回调函数，当线程创建或终止时，系统会调用此回调函数。这在监控线程生命周期和操作时非常有用。</li>
+</ul>
+<ol start="3">
+<li><strong>注册表监控</strong></li>
+</ol>
+<ul>
+<li><p><strong>API</strong>: <code>CmRegisterCallback</code> &#x2F; <code>CmRegisterCallbackEx</code></p>
+</li>
+<li><p>描述:</p>
+<ul>
+<li><code>CmRegisterCallback</code>：允许驱动程序在注册表操作（如创建、删除、查询、设置值等）发生时获得通知。该函数已被<code>CmRegisterCallbackEx</code>替代。</li>
+<li><code>CmRegisterCallbackEx</code>：扩展了前者的功能，支持命名空间隔离等高级特性。</li>
+</ul>
+</li>
+</ul>
+<ol start="4">
+<li><strong>文件监控</strong></li>
+</ol>
+<ul>
+<li><p><strong>API</strong>: 文件系统过滤驱动 (File System Filter Driver)</p>
+</li>
+<li><p>描述:</p>
+<ul>
+<li>文件监控通常通过编写文件系统过滤驱动实现。微软提供了<code>Filter Manager</code>框架（如<code>FltRegisterFilter</code> API），简化了开发过程。过滤驱动可以监控文件的打开、读写、删除、重命名等操作。</li>
+</ul>
+</li>
+</ul>
+<ol start="5">
+<li><strong>网络监控</strong></li>
+</ol>
+<ul>
+<li><p><strong>API</strong>: WFP (Windows Filtering Platform)</p>
+</li>
+<li><p>描述:</p>
+<ul>
+<li>通过Windows过滤平台（WFP）提供的API，可以监控和过滤网络数据包。例如，使用<code>FwpmEngineOpen</code>来打开过滤引擎，然后通过回调函数来处理特定的网络事件，如数据包传输、连接建立等。</li>
+</ul>
+</li>
+</ul>
+<ol start="6">
+<li><strong>模块监控</strong></li>
+</ol>
+<ul>
+<li><strong>API</strong>: <code>PsSetLoadImageNotifyRoutine</code></li>
+<li><strong>描述</strong>: 注册一个回调函数，当模块（包括驱动程序、DLL等）加载到内存中时，系统会调用此回调函数。通过此API可以监控系统中加载的所有模块。</li>
+</ul>
+<ol start="7">
+<li><strong>开关机监控</strong></li>
+</ol>
+<ul>
+<li><p><strong>API</strong>: <code>IoRegisterShutdownNotification</code> &#x2F; <code>IoRegisterLastChanceShutdownNotification</code></p>
+</li>
+<li><p>描述:</p>
+<ul>
+<li><code>IoRegisterShutdownNotification</code>：注册一个回调函数，确保在系统关机或重启时，驱动程序能够接收到通知，并进行必要的清理工作。</li>
+<li><code>IoRegisterLastChanceShutdownNotification</code>：类似于前者，但该回调在关机的最后阶段被调用，允许执行更紧急的任务。</li>
+</ul>
+</li>
+</ul>
+<h3 id="对象监控"><a href="#对象监控" class="headerlink" title="对象监控"></a><strong>对象监控</strong></h3><ul>
+<li><strong>API</strong>: <code>ObRegisterCallbacks</code></li>
+<li>描述:<ul>
+<li><code>ObRegisterCallbacks</code>允许注册回调函数，监控和控制对特定对象类型（如进程、线程）的访问。通过这种方式，可以在对象创建、引用、销毁时获得通知或修改访问权限。</li>
+</ul>
+</li>
+</ul>
+<p>在WDK（Windows Driver Kit）开发中，<code>ObRegisterCallbacks</code> 函数用于注册回调函数，这些回调函数可以拦截对指定对象类型（如进程或线程）进行访问的请求。通过该函数，你可以设置回调，以便在对象句柄被创建或被重复使用（即使用现有句柄进行操作）时进行过滤和处理。</p>
+<p>具体来说，<code>ObRegisterCallbacks</code> 注册的回调可以拦截以下操作：</p>
+<ol>
+<li><strong>句柄创建（Pre-Operation Callback）</strong>：在目标对象的句柄创建之前调用，可以检查并修改请求的访问权限，或者拒绝句柄创建。这可以用来阻止某些进程对其他进程的句柄创建请求，限制其访问目标进程或线程的能力。</li>
+<li><strong>句柄重复使用（Post-Operation Callback）</strong>：在句柄已经成功创建之后调用，这允许驱动在句柄创建成功后执行额外的操作，例如记录相关信息或进一步修改访问权限。</li>
+</ol>
+<p><code>ObRegisterCallbacks</code> 主要用于访问控制，例如拦截并限制对特定进程或线程对象的访问，常用于安全类驱动或反作弊系统，以防止恶意软件或调试器访问和控制某些系统资源。</p>
+<p> 这是参考代码 <a href="x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)%5CProcessProtect-main.zip">ProcessProtect-main.zip</a></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br></pre></td><td class="code"><pre><span class="line">OB_OPERATION_REGISTRATION obOperationRegistrations[<span class="number">2</span>] = &#123; &#123;<span class="number">0</span>&#125;, &#123;<span class="number">0</span>&#125; &#125;;</span><br><span class="line">OB_CALLBACK_REGISTRATION obCallbackRegistration = &#123; <span class="number">0</span> &#125;;</span><br><span class="line">UNICODE_STRING altitude = &#123; <span class="number">0</span> &#125;;</span><br><span class="line">PVOID RegistrationHandle = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS</span></span><br><span class="line"><span class="function"><span class="title">InitObRegistration</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 配置第一个对象类型：进程对象 (PsProcessType)</span></span><br><span class="line">    <span class="comment">// 设置操作类型为句柄创建 (OB_OPERATION_HANDLE_CREATE) 和句柄复制 (OB_OPERATION_HANDLE_DUPLICATE)</span></span><br><span class="line">    obOperationRegistrations[<span class="number">0</span>].ObjectType = PsProcessType;</span><br><span class="line">    obOperationRegistrations[<span class="number">0</span>].Operations |= OB_OPERATION_HANDLE_CREATE;  <span class="comment">// 允许处理进程句柄创建</span></span><br><span class="line">    obOperationRegistrations[<span class="number">0</span>].Operations |= OB_OPERATION_HANDLE_DUPLICATE; <span class="comment">// 允许处理进程句柄复制</span></span><br><span class="line">    obOperationRegistrations[<span class="number">0</span>].PreOperation = PreOperationCallback;  <span class="comment">// 设置句柄操作的预处理回调函数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 配置第二个对象类型：线程对象 (PsThreadType)</span></span><br><span class="line">    <span class="comment">// 同样设置操作类型为句柄创建和句柄复制</span></span><br><span class="line">    obOperationRegistrations[<span class="number">1</span>].ObjectType = PsThreadType;</span><br><span class="line">    obOperationRegistrations[<span class="number">1</span>].Operations |= OB_OPERATION_HANDLE_CREATE;  <span class="comment">// 允许处理线程句柄创建</span></span><br><span class="line">    obOperationRegistrations[<span class="number">1</span>].Operations |= OB_OPERATION_HANDLE_DUPLICATE; <span class="comment">// 允许处理线程句柄复制</span></span><br><span class="line">    obOperationRegistrations[<span class="number">1</span>].PreOperation = PreOperationCallback;  <span class="comment">// 设置句柄操作的预处理回调函数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化 Unicode 字符串 Altitude，用于指定过滤器的高度。高度的值决定了回调的优先级。</span></span><br><span class="line">    <span class="comment">// 数字越大，优先级越高。这里设置为 &quot;1000&quot;。</span></span><br><span class="line">    <span class="built_in">RtlInitUnicodeString</span>(&amp;altitude, <span class="string">L&quot;1000&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化回调注册结构体的版本，使用 ObGetFilterVersion 函数获取当前操作系统支持的回调过滤版本。</span></span><br><span class="line">    obCallbackRegistration.Version = <span class="built_in">ObGetFilterVersion</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置操作注册数。这里注册了两个操作类型：进程和线程，因此数量是 2。</span></span><br><span class="line">    obCallbackRegistration.OperationRegistrationCount = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 不需要上下文信息，设置为 NULL。</span></span><br><span class="line">    obCallbackRegistration.RegistrationContext = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置回调注册的高度，使用之前初始化的 altitude 字符串。</span></span><br><span class="line">    obCallbackRegistration.Altitude = altitude;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指向操作注册的数组（包含进程和线程的注册信息）。</span></span><br><span class="line">    obCallbackRegistration.OperationRegistration = obOperationRegistrations;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册回调函数，通过 ObRegisterCallbacks 函数向内核注册进程和线程句柄操作的回调。</span></span><br><span class="line">    <span class="comment">// 注册成功后返回 NTSTATUS 值，指示操作是否成功。</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">ObRegisterCallbacks</span>(&amp;obCallbackRegistration, &amp;RegistrationHandle);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">OB_PREOP_CALLBACK_STATUS</span></span><br><span class="line"><span class="function"><span class="title">PreOperationCallback</span><span class="params">(_In_ PVOID RegistrationContext,</span></span></span><br><span class="line"><span class="params"><span class="function">    _Inout_ POB_PRE_OPERATION_INFORMATION PreInfo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(RegistrationContext);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 根据进程 ID 查找 EPROCESS 结构</span></span><br><span class="line">    PEPROCESS requestingProcess = <span class="built_in">IoGetCurrentProcess</span>();</span><br><span class="line">    UCHAR* requestingProcessName = <span class="built_in">PsGetProcessImageFileName</span>(requestingProcess);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取进程</span></span><br><span class="line">    PEPROCESS process = (PEPROCESS)PreInfo-&gt;Object;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PreInfo-&gt;ObjectType == *PsThreadType)</span><br><span class="line">    &#123;</span><br><span class="line">        process = <span class="built_in">IoThreadToProcess</span>((PETHREAD)PreInfo-&gt;Object);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (PreInfo-&gt;ObjectType == *PsProcessType)</span><br><span class="line">    &#123;</span><br><span class="line">        process = (PEPROCESS)PreInfo-&gt;Object;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//都不是我们需要的类型，直接return</span></span><br><span class="line">        <span class="keyword">return</span> OB_PREOP_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取进程名</span></span><br><span class="line">    PUCHAR processName = <span class="built_in">PsGetProcessImageFileName</span>(process);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (_stricmp((<span class="type">char</span>*)processName, <span class="string">&quot;notepad.exe&quot;</span>) != <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//不是我们关心的进程，直接return</span></span><br><span class="line">        <span class="keyword">return</span> OB_PREOP_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PreInfo-&gt;Operation == OB_OPERATION_HANDLE_CREATE)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (!(_strnicmp((<span class="type">char</span>*)requestingProcessName, <span class="string">&quot;cheatengine-x86_64.exe&quot;</span>, <span class="number">6</span>)))  <span class="comment">//对比是否是CE</span></span><br><span class="line">        &#123;</span><br><span class="line">            PreInfo-&gt;Parameters-&gt;CreateHandleInformation.DesiredAccess = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PreInfo-&gt;Operation == OB_OPERATION_HANDLE_DUPLICATE)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (!(_strnicmp((<span class="type">char</span>*)requestingProcessName, <span class="string">&quot;cheatengine-x86_64.exe&quot;</span>, <span class="number">6</span>)))</span><br><span class="line">        &#123;</span><br><span class="line">            PreInfo-&gt;Parameters-&gt;DuplicateHandleInformation.DesiredAccess = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> OB_PREOP_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">VOID</span></span><br><span class="line"><span class="function"><span class="title">UnInitObRegistration</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (RegistrationHandle)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">ObUnRegisterCallbacks</span>(RegistrationHandle);  <span class="comment">//卸载</span></span><br><span class="line">        RegistrationHandle = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/">http://example.com/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Win-x64%E5%86%85%E6%A0%B8/">Win x64内核</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/x64%E5%86%85%E6%A0%B85(%E8%BF%87%E6%BB%A4%E9%A9%B1%E5%8A%A8)/" title="Windows x64内核(5)——过滤驱动"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Windows x64内核(5)——过滤驱动</div></div></a></div><div class="next-post pull-right"><a href="/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows x64内核(3)——分页机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Windows x64内核(3)——分页机制</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/x64%E5%86%85%E6%A0%B81(x64%E5%86%85%E6%A0%B8%E4%B8%8Ex86%E7%9A%84%E4%B8%80%E4%BA%9B%E5%8C%BA%E5%88%AB)/" title="win x64内核（1）——x64内核与x86的一些区别"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-01</div><div class="title">win x64内核（1）——x64内核与x86的一些区别</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B82(%E5%A4%A9%E5%A0%82%E4%B9%8B%E9%97%A8)/" title="Windows x64内核(2)——天堂之门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-03</div><div class="title">Windows x64内核(2)——天堂之门</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows x64内核(3)——分页机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-03</div><div class="title">Windows x64内核(3)——分页机制</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B85(%E8%BF%87%E6%BB%A4%E9%A9%B1%E5%8A%A8)/" title="Windows x64内核(5)——过滤驱动"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-10</div><div class="title">Windows x64内核(5)——过滤驱动</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B86(%E9%81%8D%E5%8E%86%E8%BF%9B%E7%A8%8B)/" title="Windows x64内核(6)——遍历进程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-11</div><div class="title">Windows x64内核(6)——遍历进程</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B87(%E5%BC%BA%E5%88%B6%E5%85%B3%E9%97%AD)/" title="Windows x64内核(7)——强制关闭进程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-12</div><div class="title">Windows x64内核(7)——强制关闭进程</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windows-x64%E5%86%85%E6%A0%B8"><span class="toc-number">1.</span> <span class="toc-text">Windows x64内核</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#x64%E5%86%85%E6%A0%B8%E7%9A%84%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0"><span class="toc-number">1.1.</span> <span class="toc-text">x64内核的回调函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9B%91%E6%8E%A7"><span class="toc-number">1.1.1.</span> <span class="toc-text">进程监控</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E8%B1%A1%E7%9B%91%E6%8E%A7"><span class="toc-number">1.1.2.</span> <span class="toc-text">对象监控</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

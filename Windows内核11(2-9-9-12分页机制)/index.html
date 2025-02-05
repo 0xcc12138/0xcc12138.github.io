@@ -1,0 +1,356 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows内核（11）——分页机制（2-9-9-12） | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windows分页机制 2-9-9-12名词解释：PTE（Page Table Entry）：页表项  PTE是页表中的一个条目，用于存储一个页面的物理地址和一些控制信息，比如页面是否有效、是否可读写等。通过页表，可以将虚拟地址转换为物理地址。  PDE（Page Directory Entry）：页目录项  PDE是页目录中的一个条目，用于指向一个页表。每个PDE包含指向页表的物理地址和控制信息">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows内核（11）——分页机制（2-9-9-12）">
+<meta property="og:url" content="http://example.com/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Windows分页机制 2-9-9-12名词解释：PTE（Page Table Entry）：页表项  PTE是页表中的一个条目，用于存储一个页面的物理地址和一些控制信息，比如页面是否有效、是否可读写等。通过页表，可以将虚拟地址转换为物理地址。  PDE（Page Directory Entry）：页目录项  PDE是页目录中的一个条目，用于指向一个页表。每个PDE包含指向页表的物理地址和控制信息">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-07-30T03:31:00.000Z">
+<meta property="article:modified_time" content="2024-07-30T03:31:00.000Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Windows内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows内核（11）——分页机制（2-9-9-12）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-07-30 11:31:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Windows内核（11）——分页机制（2-9-9-12）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-07-30T03:31:00.000Z" title="发表于 2024-07-30 11:31:00">2024-07-30</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-07-30T03:31:00.000Z" title="更新于 2024-07-30 11:31:00">2024-07-30</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Windows内核（11）——分页机制（2-9-9-12）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="分页机制-2-9-9-12"><a href="#分页机制-2-9-9-12" class="headerlink" title="分页机制 2-9-9-12"></a>分页机制 2-9-9-12</h2><h3 id="名词解释："><a href="#名词解释：" class="headerlink" title="名词解释："></a>名词解释：</h3><p><strong>PTE（Page Table Entry）</strong>：页表项</p>
+<ul>
+<li>PTE是页表中的一个条目，用于存储一个页面的物理地址和一些控制信息，比如页面是否有效、是否可读写等。通过页表，可以将虚拟地址转换为物理地址。</li>
+</ul>
+<p><strong>PDE（Page Directory Entry）</strong>：页目录项</p>
+<ul>
+<li>PDE是页目录中的一个条目，用于指向一个页表。每个PDE包含指向页表的物理地址和控制信息。页目录本身是一个包含多个PDE的表，用于管理多个页表。</li>
+</ul>
+<p><strong>PTT（Page Table）</strong>：页表</p>
+<ul>
+<li>页表是一个结构，包含多个PTE。每个PTE指向一个物理页的地址。页表用于虚拟地址到物理地址的转换。在分层页表结构中，一个页表对应一个页目录项。</li>
+</ul>
+<p><strong>PDI（Page Directory Index）</strong>：页目录索引</p>
+<ul>
+<li>PDI是虚拟地址的一部分，用于索引页目录中的某个PDE。通过PDI，操作系统可以找到页目录中对应的PDE，从而找到指向的页表。</li>
+</ul>
+<p><strong>页目录索引（PDI, Page Directory Index）</strong>：用于查找页目录中的某个页目录项（PDE）。</p>
+<p><strong>页表索引（PTI, Page Table Index）</strong>：用于查找页表中的某个页表项（PTE）。</p>
+<p><strong>页内偏移（Offset）</strong>：用于定位物理页内的具体字节。</p>
+<h3 id="控制寄存器"><a href="#控制寄存器" class="headerlink" title="控制寄存器"></a>控制寄存器</h3><p>CR（Control Register）控制寄存器，这些寄存器只能在0环使用</p>
+<table>
+<thead>
+<tr>
+<th>寄存器名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CR0</td>
+<td>包含处理器标志控制位，例如PE,PG,WP等</td>
+</tr>
+<tr>
+<td>CR1</td>
+<td>保留</td>
+</tr>
+<tr>
+<td>CR2</td>
+<td>专门用于保存缺页异常时的线性地址</td>
+</tr>
+<tr>
+<td>CR3</td>
+<td>保存进程页目录地址，切换进程用</td>
+</tr>
+<tr>
+<td>CR4</td>
+<td>扩展功能（如判断物理地址扩展模式等），Pentium系列（包括486的后期版本）处理器中才实现</td>
+</tr>
+</tbody></table>
+<p><strong>CR0寄存器：</strong></p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722081811572-1722088848737.png" alt="1722081811572"></p>
+<p>PE：启用保护模式标志，1是保护模式，0是实模式，这个位只是开始或关闭段机制，并没有启用分页机制。</p>
+<p>PG：分页机制开关，在启用之前需要确保PE是开启的，否则会出现异常。</p>
+<p>WP：写保护标志，禁止0环程序向3环只读页面执行写操作，也就是说当CPL&lt;3的时候，如果WP&#x3D;0，可以读写任意物理页，只要线性地址有效，如果WP&#x3D;1，可以读取任意用户级物理页，但是对于只读的物理页，不能写 。</p>
+<p><strong>CR4寄存器</strong> </p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722082069659-1722088848738.png" alt="1722082069659"></p>
+<p><strong>PAE （Physical Address Extension，物理地址扩展）：</strong><br>启用PAE可以使处理器支持超过4GB的物理内存寻址能力，增加到36位地址总线，从而支持高达64GB的物理内存。PAE&#x3D;1开启<br>启用PAE后，页表结构会发生变化，使用三级页表：页目录指针表（PDP）、页目录（PD）和页表（PT）。<br>在启动选项 &#x2F;nopae  &#x2F;pae 分别是关闭和开启PAE标志的指令</p>
+<p><strong>PSE （Page Size Extension，页大小扩展） ：</strong><br>PSE标志位是CR4寄存器的第4位（CR4.PSE）。启用PSE可以使处理器支持4MB的大页，从而减少页表开销，提高内存管理效率。  启用PSE后，页表结构中的页目录项（PDE）可以指向一个4MB的大页，而不是传统的4KB小页。 </p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722082317882-1722088848738.png" alt="1722082317882"></p>
+<p>这个表列举了标志位组合起来的情况，（PS（在PDE里面）这个属于页表的标志位）</p>
+<h3 id="为什么放弃10-10-12分页机制？"><a href="#为什么放弃10-10-12分页机制？" class="headerlink" title="为什么放弃10-10-12分页机制？"></a>为什么放弃10-10-12分页机制？</h3><p>参考： <a target="_blank" rel="noopener" href="https://www.cnblogs.com/zpchcbd/p/15917204.html">80x86 2-9-9-12分页 - zpchcbd - 博客园 (cnblogs.com)</a> </p>
+<p>首先10-10-12分页模式这个成品是基于设计者的想法而产生的，先要确定的肯定是页的大小也就是4kb大小，那么也就是2^12 -&gt; 4KB大小</p>
+<p>那么还剩下”10” “10” 接着又设计PDE和PTE，通过PTE的前20位再加上12位的偏移，那么也就是4G寻址范围（那当时的情况寻址能力已经能足够了）</p>
+<p>But，计算机在发展，4G的寻址能力无法满足越来越大的内存，所以开启了新的2-9-9-12分页机制</p>
+<p>有什么办法在32位cpu下如何能够提高物理地址的寻址范围呢？</p>
+<p>这里就引入了2-9-9-12的分页模式，又被叫做为<strong>PAE物理地址扩展</strong></p>
+<p>1、页的大小是确定的，4KB不能随便改，所以低12位是可以确定的</p>
+<p>2、如果想增大物理内存的访问范围，就需要增大PTE，增大多少了呢？需要找到64G，那么增大到36位，但是还需要考虑对齐的因素，所以对齐到8个字节</p>
+<p>知识点：在Windows系统中，对齐大小有利于高效率的执行和搜索</p>
+<h3 id="2-9-9-12分页结构"><a href="#2-9-9-12分页结构" class="headerlink" title="2-9-9-12分页结构"></a>2-9-9-12分页结构</h3><p>1.页的大小是确定的，4KB不能随便改，所以32位的最后一部分就确定为了12位。</p>
+<p>2.如果想增大物理内存的访问范围，就需要增大PTE，增大了多少呢？ 需要找到64G，那么增大到36位，<strong>考虑对齐的因素，增加到8个字节</strong><br>由于PTE增大了，而PTT表的大小没变，依然是4KB，所以每张PTT表能放的PTE个数由原来的1024个减少到512个，512等于2的9次方，因此PTI&#x3D;9</p>
+<p>3.由于2的9次方个PDE就能找到所有的PTT表，因此<strong>PDI&#x3D;9</strong></p>
+<p>4、同理PDI也是2的9次方 32 - 9 - 9 - 12 还差2位 所以就再做一级叫PDPI（页目录指针表）</p>
+<p>知识点：这里需要让PDI也是2的9次方的原因，其实也是就是为了通过PDE同样可以定位到PTE，举个例子，此时2-9-9-12分页下，当前的PTE的前24位是4GB范围以外的，那么如果PDE不是跟PTE同样的结构，那么PDE的前24位就没有，也就是无法找到4GB范围以外，所以为了能够让PDE能够定位到4GB以为的PTE，所以也需要”9”</p>
+<h3 id="表结构"><a href="#表结构" class="headerlink" title="表结构"></a>表结构</h3><h4 id="PDE结构："><a href="#PDE结构：" class="headerlink" title="PDE结构："></a>PDE结构：</h4><h5 id="PS-1为大页的情况下"><a href="#PS-1为大页的情况下" class="headerlink" title="(PS&#x3D;1为大页的情况下)"></a>(PS&#x3D;1为大页的情况下)</h5><p>当PDE里面的标志位PS位为1的时候，该PDE指向的物理页是大页，35-21位是大页的物理地址，这样36位的物理地址的低21位为0，这就意味着页的大小为2MB，且都是2MB对齐。 </p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722309871541.png" alt="1722309871541"></p>
+<h5 id="PS-0"><a href="#PS-0" class="headerlink" title="(PS&#x3D;0)"></a>(PS&#x3D;0)</h5><p>2-9-9-12的9位，它是PDE，这个每项占8个字节，如下图所示</p>
+<p>当PS&#x3D;0时，第35-12位是页表基址，低12位补0，共36位。</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722309905324.png" alt="1722309905324"></p>
+<p><strong>P (Present) (第0位)</strong>:</p>
+<ul>
+<li>指示该PDE是否有效。1表示有效，0表示无效。</li>
+</ul>
+<p><strong>RW (Read&#x2F;Write) (第1位)</strong>:</p>
+<ul>
+<li>指示页面是否可写。0表示只读，1表示可读写。</li>
+</ul>
+<p><strong>US (User&#x2F;Supervisor) (第2位)</strong>:</p>
+<ul>
+<li>控制访问权限。0表示内核模式，1表示用户模式。</li>
+</ul>
+<p><strong>PWT (Page-level Write-Through) (第3位)</strong>:</p>
+<ul>
+<li>控制缓存写通策略。</li>
+</ul>
+<p><strong>PCD (Page-level Cache Disable) (第4位)</strong>:</p>
+<ul>
+<li>控制是否禁用缓存。</li>
+</ul>
+<p><strong>A (Accessed) (第5位)</strong>:</p>
+<ul>
+<li>标记该页是否被访问过。</li>
+</ul>
+<p><strong>0 (第6位)</strong>:</p>
+<ul>
+<li>保留位，必须为0。</li>
+</ul>
+<p><strong>PS (Page Size) (第7位)</strong>:</p>
+<ul>
+<li>指示页的大小。0表示4 KB页，1表示2 MB页（PAE模式下不使用4 MB页）。</li>
+</ul>
+<p><strong>G (Global) (第8位)</strong>:</p>
+<ul>
+<li>标记全局页。当启用CR4中的PGE位时，全局页在上下文切换时不会刷新TLB。</li>
+</ul>
+<p><strong>0 (第9位)</strong>:</p>
+<ul>
+<li>保留位，必须为0。</li>
+</ul>
+<p><strong>Reserved (第10-11位)</strong>:</p>
+<ul>
+<li>保留位，必须为0。</li>
+</ul>
+<p><strong>Base Address (第12-35位)</strong>:</p>
+<ul>
+<li>页表的物理基地址，指向下一级的页表（对于4 KB页）</li>
+</ul>
+<p><strong>Reserved(set to 0，第36-63位)：</strong></p>
+<ul>
+<li>保留位，给下一代cpu</li>
+</ul>
+<h4 id="PTE"><a href="#PTE" class="headerlink" title="PTE"></a>PTE</h4><p>2-9-9-12的9位，它是PTE，这个每项占8个字节，如下图所示</p>
+<p>PTE中第35-12是物理页基址，24位，低12位补0物理页基址+12位的页内偏移指向具体数据</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722310011530.png" alt="1722310011530"></p>
+<p><strong>PAT</strong>用于指定页面的缓存属性的。它与页属性表（Page Attribute Table）一起工作，允许操作系统指定不同的缓存策略以优化内存访问。 </p>
+<h4 id="PDPTE-Page-Directory-Point-Table-Entry-："><a href="#PDPTE-Page-Directory-Point-Table-Entry-：" class="headerlink" title="PDPTE(Page-Directory-Point-Table-Entry)："></a>PDPTE(Page-Directory-Point-Table-Entry)：</h4><p> 2-9-9-12最高的2位，它是页目录指针表项，这个每项占8个字节，如下图所示 </p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722310064183.png" alt="1722310064183"></p>
+<p><strong>P (Present) (第0位)</strong>:</p>
+<ul>
+<li>表示页目录指针表项是否有效。1表示有效，0表示无效。</li>
+</ul>
+<p><strong>RW (Read&#x2F;Write) (第1位)</strong>:</p>
+<ul>
+<li>指示指向的页是否可写。0表示只读，1表示可读写。</li>
+</ul>
+<p><strong>US (User&#x2F;Supervisor) (第2位)</strong>:</p>
+<ul>
+<li>控制访问权限。0表示内核模式，1表示用户模式。</li>
+</ul>
+<p><strong>PWT (Page-level Write-Through) (第3位)</strong>:</p>
+<ul>
+<li>控制缓存写通策略。</li>
+</ul>
+<p><strong>PCD (Page-level Cache Disable) (第4位)</strong>:</p>
+<ul>
+<li>控制是否禁用缓存。</li>
+</ul>
+<p><strong>保留位 (第5-8位)</strong>:</p>
+<ul>
+<li>通常设置为0，不被使用。</li>
+</ul>
+<p><strong>Reserved (第9-11位)</strong>:</p>
+<ul>
+<li>保留位，通常为0。</li>
+</ul>
+<p><strong>Page-Directory Base Address (第12-35位)</strong>:</p>
+<ul>
+<li>指向页目录的物理地址</li>
+</ul>
+<p><strong>Reserved(set to 0):</strong></p>
+<ul>
+<li>通常设置为0，不被使用</li>
+</ul>
+<h4 id="整体的2-9-9-12架构"><a href="#整体的2-9-9-12架构" class="headerlink" title="整体的2-9-9-12架构"></a>整体的2-9-9-12架构</h4><p>先查页目录指针表确定是哪一个页目录表项，占两位，有2^2&#x3D;4种可能</p>
+<p>然后查询页目录表找到页表，由2^9&#x3D;512种可能</p>
+<p>然后查询页表项，有2^9&#x3D;512种可能</p>
+<p>所以总共能映射的内存是4 * 512 * 512* 4k &#x3D; 4M（一个分页为4K）</p>
+<p>如果一个分页大小是4M，那么就没有页表了</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722310099116.png" alt="1722310099116"></p>
+<h3 id="逻辑地址转物理地址实战"><a href="#逻辑地址转物理地址实战" class="headerlink" title="逻辑地址转物理地址实战"></a>逻辑地址转物理地址实战</h3><p>因为分段机制已经没啥用了，所以 <strong>逻辑地址 &#x3D; 线性地址</strong></p>
+<p>现在我们来转换一下0x11A2014这个地址</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722329906119.png" alt="1722329906119"></p>
+<p>0x11A2014拆成二进制为：00 000001000 110100010  000000010100</p>
+<p>页目录指针index	 	0<br>页目录index 	0x8<br>页表index 		0x1A2<br>偏移 		0x14</p>
+<p><strong>根据页目录指针找到页目录表基地址，加下标得到页目录表项地址：</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>: kd&gt; !dq cr3+<span class="number">0</span>*<span class="number">8</span></span><br><span class="line">#<span class="number">3</span>eed23a0 <span class="number">00000000</span>`<span class="number">167</span>dc801 <span class="number">00000000</span>`<span class="number">3</span>addd801</span><br></pre></td></tr></table></figure>
+
+<p>分解一下，页目录表的基地址为0x167dc000,属性为0x801，最低位为1，所以是有物理内存映射的</p>
+<p>页目录表项地址为0x167dc000 + 0x8*8</p>
+<p><strong>根据页目录表项找到页表基地址，加下标得到页表项</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>: kd&gt; !dq <span class="number">0x167dc000</span> + <span class="number">0x8</span>*<span class="number">8</span></span><br><span class="line">#<span class="number">167</span>dc040 <span class="number">00000000</span>`<span class="number">3</span>c765867 <span class="number">00000000</span>`<span class="number">00000000</span></span><br></pre></td></tr></table></figure>
+
+<p>分解一下，得到页表基地址为0x3c765000(如果有页表)，属性为0x867,查看属性，重点看第0位和第7位，说明物理地址有效并且分页大小为4K,说明有页表</p>
+<p>所以页表项地址为0x3c765000+0x1A2*8</p>
+<p><strong>根据页表项找到页框物理基地址，加偏移得到物理地址</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>: kd&gt; !dq <span class="number">0x3c765000</span>+<span class="number">0x1A2</span>*<span class="number">8</span></span><br><span class="line">#<span class="number">3</span>c765d10 <span class="number">00000000</span>`<span class="number">02</span>df5025 <span class="number">00000000</span>`<span class="number">0046b</span>025</span><br></pre></td></tr></table></figure>
+
+<p>页框物理基地址为0x2df5000</p>
+<p>最终物理地址为0x2df5000+0x14&#x3D;0x2df5014</p>
+<p>发现最终也是成功对上了</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1722330758974.png" alt="1722330758974"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/">http://example.com/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Windows%E5%86%85%E6%A0%B8/">Windows内核</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/Windows%E5%86%85%E6%A0%B812(%E4%BF%AE%E6%94%B9%E5%AF%B9%E6%96%B9%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98)/" title="Windows内核（12）——通过CR3修改进程内存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Windows内核（12）——通过CR3修改进程内存</div></div></a></div><div class="next-post pull-right"><a href="/Windows%E5%86%85%E6%A0%B810(10-10-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（10）——分页机制（10-10-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Windows内核（10）——分页机制（10-10-12）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/Windows%E5%86%85%E6%A0%B81(%E5%86%85%E6%A0%B8%E5%88%9D%E6%8E%A2&%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F)/" title="Windows内核（1）——内核初探&amp;编写第一个驱动程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-10</div><div class="title">Windows内核（1）——内核初探&amp;编写第一个驱动程序</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B810(10-10-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（10）——分页机制（10-10-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-27</div><div class="title">Windows内核（10）——分页机制（10-10-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B812(%E4%BF%AE%E6%94%B9%E5%AF%B9%E6%96%B9%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98)/" title="Windows内核（12）——通过CR3修改进程内存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-03</div><div class="title">Windows内核（12）——通过CR3修改进程内存</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B814(%E8%A1%A5%E7%AC%94%E8%AE%B0)/" title="Windows内核（14）——补笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-17</div><div class="title">Windows内核（14）——补笔记</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/" title="Windows内核（15）——键盘Hook，调用门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-20</div><div class="title">Windows内核（15）——键盘Hook，调用门</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B816/" title="Windows内核（16）——探究SSDT"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-25</div><div class="title">Windows内核（16）——探究SSDT</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windows"><span class="toc-number">1.</span> <span class="toc-text">Windows</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6-2-9-9-12"><span class="toc-number">1.1.</span> <span class="toc-text">分页机制 2-9-9-12</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A%EF%BC%9A"><span class="toc-number">1.1.1.</span> <span class="toc-text">名词解释：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.1.2.</span> <span class="toc-text">控制寄存器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%94%BE%E5%BC%8310-10-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%EF%BC%9F"><span class="toc-number">1.1.3.</span> <span class="toc-text">为什么放弃10-10-12分页机制？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-9-9-12%E5%88%86%E9%A1%B5%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.4.</span> <span class="toc-text">2-9-9-12分页结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.5.</span> <span class="toc-text">表结构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#PDE%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-number">1.1.5.1.</span> <span class="toc-text">PDE结构：</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#PS-1%E4%B8%BA%E5%A4%A7%E9%A1%B5%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B"><span class="toc-number">1.1.5.1.1.</span> <span class="toc-text">(PS&#x3D;1为大页的情况下)</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#PS-0"><span class="toc-number">1.1.5.1.2.</span> <span class="toc-text">(PS&#x3D;0)</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PTE"><span class="toc-number">1.1.5.2.</span> <span class="toc-text">PTE</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PDPTE-Page-Directory-Point-Table-Entry-%EF%BC%9A"><span class="toc-number">1.1.5.3.</span> <span class="toc-text">PDPTE(Page-Directory-Point-Table-Entry)：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B4%E4%BD%93%E7%9A%842-9-9-12%E6%9E%B6%E6%9E%84"><span class="toc-number">1.1.5.4.</span> <span class="toc-text">整体的2-9-9-12架构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E5%9C%B0%E5%9D%80%E8%BD%AC%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E5%AE%9E%E6%88%98"><span class="toc-number">1.1.6.</span> <span class="toc-text">逻辑地址转物理地址实战</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

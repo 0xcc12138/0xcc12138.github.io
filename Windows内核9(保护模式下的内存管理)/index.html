@@ -1,0 +1,448 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows内核（9）——保护模式下的内存管理（分段机制） | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windows保护模式下的内存管理：注：主要参考来自 内核第二讲,内存保护的实现,以及知识简介,局部描述符,全局描述符. - iBinary - 博客园 (cnblogs.com)   Win32汇编–Windows 的内存管理机制 - 木屐 - 博客园 (cnblogs.com) （来源小甲鱼） 80386指的是32位系统 三种模式实模式:　指的是操作系统在启动的时候,这时候访问的内存都是实际的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows内核（9）——保护模式下的内存管理（分段机制）">
+<meta property="og:url" content="http://example.com/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Windows保护模式下的内存管理：注：主要参考来自 内核第二讲,内存保护的实现,以及知识简介,局部描述符,全局描述符. - iBinary - 博客园 (cnblogs.com)   Win32汇编–Windows 的内存管理机制 - 木屐 - 博客园 (cnblogs.com) （来源小甲鱼） 80386指的是32位系统 三种模式实模式:　指的是操作系统在启动的时候,这时候访问的内存都是实际的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-07-19T14:48:00.000Z">
+<meta property="article:modified_time" content="2024-07-19T14:48:00.000Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Windows内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows内核（9）——保护模式下的内存管理（分段机制）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-07-19 22:48:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Windows内核（9）——保护模式下的内存管理（分段机制）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-07-19T14:48:00.000Z" title="发表于 2024-07-19 22:48:00">2024-07-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-07-19T14:48:00.000Z" title="更新于 2024-07-19 22:48:00">2024-07-19</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Windows内核（9）——保护模式下的内存管理（分段机制）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="保护模式下的内存管理："><a href="#保护模式下的内存管理：" class="headerlink" title="保护模式下的内存管理："></a>保护模式下的内存管理：</h2><p>注：主要参考来自 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/iBinary/p/8253735.html">内核第二讲,内存保护的实现,以及知识简介,局部描述符,全局描述符. - iBinary - 博客园 (cnblogs.com)</a> </p>
+<p> <a target="_blank" rel="noopener" href="https://www.cnblogs.com/poli/p/4734903.html">Win32汇编–Windows 的内存管理机制 - 木屐 - 博客园 (cnblogs.com)</a> （来源小甲鱼）</p>
+<p>80386指的是32位系统</p>
+<h3 id="三种模式"><a href="#三种模式" class="headerlink" title="三种模式"></a>三种模式</h3><p>实模式:　指的是操作系统在启动的时候,这时候访问的内存都是实际的物理内存.也就是在这个时机，系统会在实模式下填写全局描述符表 GDT</p>
+<p>保护模式: 当各种表填写好了,那么我们的内存也被保护了.这个是否我们的进程就不会直接访问物理地址了.进而产生了保护行为,我们的内存就有了 可读 可写,可执行一说了. </p>
+<p>虚拟86模式: 操作系统启动的是否,运行的都是实际的16位汇编.那么现在我们假设有一个16位程序要启动.那么修改了我们物理地址的内存,那么保护模式不就没用了.所以为了防止这一情况的产生,操作系统做了一个虚拟86模式,也就是说可以运行16位汇编程序. </p>
+<h3 id="保护模式如何保护内存"><a href="#保护模式如何保护内存" class="headerlink" title="保护模式如何保护内存"></a>保护模式如何保护内存</h3><p>操作系统启动的会从实模式启动,然后会切换到保护模式，此时操作系统会通过做表,然后通过查表,进而判断内存是否可以访问或者读写. </p>
+<p>在16位汇编中,我们可以通过段+偏移的方式来寻找内存.管理内存.那么我们现在要对内存做管理.那么就要分段了. </p>
+<h3 id="什么是分段管理？"><a href="#什么是分段管理？" class="headerlink" title="什么是分段管理？"></a>什么是分段管理？</h3><p><strong>基本概念：</strong></p>
+<p>逻辑地址: 逻辑地址指的是 段 + 偏移的方式,我们程序中每一行代码都是逻辑地址.</p>
+<p>线性地址: 线性地址我们可以理解为逻辑上连续的物理地址.</p>
+<p>物理地址: 物理地址就是内存条的地址,也就是我们说的实际地址.</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721575906313.png" alt="1721575906313"></p>
+<p>段+偏移 查表,会查到线性地址，每个段+偏移都会查到一块物理地址.</p>
+<p>00401000~00402000,在逻辑上我们看的是连续的,但是通过查表转换为物理地址的是否则不是连续的. （有可能通过查表,得出的物理地址不是连续的.但是逻辑地址是连续的. ）</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721389509679.png" alt="1721389509679"></p>
+<p><strong>为什么要查表得到物理地址?</strong><br>进程间的数据肯定不是共享的，虽然逻辑地址可能都是0x400000但是物理地址不是一样的，这样就可以实现进程隔离</p>
+<h3 id="表格是如何做"><a href="#表格是如何做" class="headerlink" title="表格是如何做"></a>表格是如何做</h3><p>最基本的就是希望通过这个表，能够查出：</p>
+<p>1.段起始地址</p>
+<p>2.大小</p>
+<p>3.结束地址.</p>
+<p>4.当前内存的保护属性.</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721379218651.png" alt="1721379218651"></p>
+<h4 id="段描述符（Segment-Descriptor）"><a href="#段描述符（Segment-Descriptor）" class="headerlink" title="段描述符（Segment Descriptor）"></a>段描述符（Segment Descriptor）</h4><p>段描述符分为全局描述符表（GDT）和局部描述符表（LDT），并且它们的大小都是64位。 </p>
+<p>段描述符是一个8字节（64位）的结构体（被拆开成两个部分），包含段的各种信息。其结构如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Segment_Descriptor</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> Segment_Limit_Low16 : <span class="number">16</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> Base_Address_Low16 : <span class="number">16</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> Base_Address_Mid8 : <span class="number">8</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> Type : <span class="number">4</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> s : <span class="number">1</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> DPL : <span class="number">1</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> P : <span class="number">1</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> Segment_Limit_High4 : <span class="number">4</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> AVL : <span class="number">1</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> Remain : <span class="number">1</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> D_B : <span class="number">1</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> G : <span class="number">1</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> Base_Address_High8 : <span class="number">8</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>低 4 字节（32 位）</strong></p>
+<ol>
+<li><strong>Base 15:00 (0-15位)</strong>:<ul>
+<li>段的基地址的低 16 位。</li>
+</ul>
+</li>
+<li><strong>Limit 15:00 (16-31位)</strong>:<ul>
+<li>段限长的低 16 位。</li>
+</ul>
+</li>
+</ol>
+<p><strong>高 4 字节（32 位）</strong></p>
+<ol>
+<li><strong>Base 23:16 (32-39位)</strong>:<ul>
+<li>段的基地址的中间 8 位。</li>
+</ul>
+</li>
+<li><strong>Type (40-43位)</strong>:<ul>
+<li>描述符类型字段，包含了段类型和访问权限等信息。</li>
+<li>常见的值：<ul>
+<li>代码段（执行段）：可执行、不可写、可读。</li>
+<li>数据段：不可执行、可写、可读。</li>
+</ul>
+</li>
+<li>各位的作用：<ul>
+<li>第 40 位：是否访问过。</li>
+<li>第 41 位：可读&#x2F;写标志。</li>
+<li>第 42 位：是否向下扩展（数据段）&#x2F;是否一致性段（代码段）。</li>
+<li>第 43 位：可执行标志（1 为代码段，0 为数据段）。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>S (44位)</strong>:<ul>
+<li>描述符类型标志，0 为系统描述符（如任务状态段 TSS），1 为代码或数据段。</li>
+</ul>
+</li>
+<li><strong>DPL (45-46位)</strong>:<ul>
+<li>特权级别（Descriptor Privilege Level），用来确定访问该段所需的最低特权级别。取值范围为 0（最高特权级）到 3（最低特权级）。</li>
+</ul>
+</li>
+<li><strong>P (47位)</strong>:<ul>
+<li>存在标志（Present），1 表示段存在于内存中。</li>
+</ul>
+</li>
+<li><strong>Limit 19:16 (48-51位)</strong>:<ul>
+<li>段限长的高 4 位。</li>
+</ul>
+</li>
+<li><strong>AVL (52位)</strong>:<ul>
+<li>系统保留位，可供操作系统使用。</li>
+</ul>
+</li>
+<li><strong>L (53位)</strong>:<ul>
+<li>64 位代码段标志（Long Mode），32 位模式下应为 0。</li>
+</ul>
+</li>
+<li><strong>D&#x2F;B (54位)</strong>:<ul>
+<li>默认操作大小标志（D 位），对于代码段，1 表示 32 位操作（即默认操作是 32 位的），0 表示 16 位操作。对于堆栈段，1 表示默认堆栈指针为 ESP，0 表示默认堆栈指针为 SP。</li>
+<li>有时也称为 Big 位（B 位）。</li>
+</ul>
+</li>
+<li><strong>G (55位)</strong>:<ul>
+<li>粒度标志（Granularity），0 表示段限长的单位为字节，1 表示单位为 4KB。</li>
+</ul>
+</li>
+<li><strong>Base 31:24 (56-63位)</strong>:<ul>
+<li>段的基地址的高 8 位。</li>
+</ul>
+</li>
+</ol>
+<p><strong>TYPE位展开</strong></p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721399929925.png"></p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721548239971.png" alt="1721548239971"></p>
+<p>处理器在访问段时，会根据<code>Type</code>字段和<code>DPL</code>字段检查访问权限。例如：</p>
+<ul>
+<li>若尝试写操作但<code>RW位</code>为0（只读），则访问会被拒绝。</li>
+<li>当前代码段的特权级别（CPL）和目标段的<code>DPL</code>也会进行比较，确定是否允许访问。</li>
+</ul>
+<p>如何让一个段不可读，不可写，不可执行？很简单，把p标志位设置为0即可</p>
+<p>如何让一个段可读可写可执行？<br>如果想要一块内存可读可执行,可写.那么需要建立两个表.分别让TYPE为 &#x3D; 2,然后 &#x3D; 8即可.<br>查询Data段的权限，利用的寄存器是DS去做索引(在下面段选择子会说为什么是寄存器做索引)<br>查询Code段的权限，利用的寄存器是CS去做索引<br>所以可以做两张表，一个描述Data，一个表述Code</p>
+<p>查询Code段的权限，利用的寄存器是CS去做索引</p>
+<h4 id="内存映射与共享"><a href="#内存映射与共享" class="headerlink" title="内存映射与共享"></a>内存映射与共享</h4><p>内存映射（Memory Mapping）是将虚拟地址空间的一部分映射到物理内存的一部分。共享内存（Shared Memory）是指不同进程之间共享同一块物理内存。内存映射和共享通常通过段描述符和页表来实现。</p>
+<p><strong>内存映射的基本过程</strong></p>
+<ol>
+<li><strong>查找空闲段描述符</strong>：<ul>
+<li>系统会在段描述符表（如 GDT 或 LDT）中查找一个空闲的段描述符。</li>
+</ul>
+</li>
+<li><strong>填充段描述符</strong>：<ul>
+<li>段描述符按照一定的格式填好，包括基地址（Base Address）、段限长（Limit）、段类型（Type）、特权级别（DPL）等。</li>
+</ul>
+</li>
+<li><strong>设置段描述符的 P 标志</strong>：<ul>
+<li>段描述符中的 P 标志（Present 位）表示段是否存在。P 标志设置为 1 表示段存在，设置为 0 表示段不存在。如果 P 标志为 0，该段描述符不可用。</li>
+</ul>
+</li>
+</ol>
+<p>如果是恶意程序，直接找到这个软件的段描述符的p，全改为0，这样段全部无效，软件直接崩溃</p>
+<h3 id="线性地址的范围怎么计算"><a href="#线性地址的范围怎么计算" class="headerlink" title="线性地址的范围怎么计算"></a>线性地址的范围怎么计算</h3><p>base Address + limit 则可以形成一块内存区域. </p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721396908919.png" alt="1721396908919"></p>
+<p>假设段A的基地址是 00012345h,段界限为5678h,并且是以字节为单位(G &#x3D; 0),那么</p>
+<p>段基地址+ 段界限 &#x3D; 000179BDh, 那么在00012345h ~ 000179BDH则是段A的线性地址</p>
+<p>计算就是 段基地址 + 段界限 (也可以理解为,起始地址+一块区域.则这块区域就是线性地址)</p>
+<p>如果属性中 G位 &#x3D; 1,那么就是按照4K去计算.那么就是这样算0012345h + (5678 *4K) + 0FFFh &#x3D; 0568b344h<br>那么段A的线性地址就是从 0012345h ~ 0568b344h</p>
+<h3 id="段选择子，进行查表"><a href="#段选择子，进行查表" class="headerlink" title="段选择子，进行查表"></a>段选择子，进行查表</h3><p><strong>段寄存器的作用：</strong></p>
+<p>在保护模式下，段寄存器就不再有用了呢？<br>答案是否定的！实际上段寄存器更有用了，虽然在寻址上不再有分段的限制问题，但在保护模式下，一个地址空间是否可以被写入，可以被多少优先级的代码写入，是不是允许执行等涉及保护的问题就出来了？</p>
+<p>要解决这些问题，必须对一个地址空间定义一些安全上的属性。段寄存器这时就派上了用途，不妨将这些属性存放在段寄存器中！ </p>
+<p> 80386的段寄存器仍然是16位的，无法放下保护模式下64位的段描述符。如何解决这个新的问题呢？解决办法是把所有段的段描述符顺序放在内存中的指定位置，组成一个段描述符表（Descriptor Table） </p>
+<p>而段寄存器中的16位用来做索引信息，指定这个段的属性用段描述符表中的第几个描述符来表示。 </p>
+<p> 这时，段寄存器中的信息不再是段地址了，而是段选择器（Segment Selector）。可以通过它在段描述符表中“选择”一个项目以得到段的全部信息。 </p>
+<p>段选择子（Segment Selector） </p>
+<p>段选择子是一个16位的值，用来选择一个段描述符。段选择子的结构如下：</p>
+<ul>
+<li><strong>索引（Index）</strong>: 13位，用于在GDT（全局描述符表）或LDT（局部描述符表）中索引段描述符。</li>
+<li><strong>TI位（Table Indicator）</strong>: 1位，指示段选择子是指向GDT（0）还是LDT（1）。</li>
+<li><strong>RPL（Request Privilege Level）</strong>: 2位，表示请求特权级。</li>
+</ul>
+<h3 id="描述符，全局描述符，局部描述符"><a href="#描述符，全局描述符，局部描述符" class="headerlink" title="描述符，全局描述符，局部描述符"></a>描述符，全局描述符，局部描述符</h3><p>80386中引入了两个新的寄存器来管理段描述符表。一个是48位的全局描述符表寄存器GDTR，一个是16位的局部描述符表寄存器LDTR。那么，为什么有两个描述符表寄存器呢？ </p>
+<p>GDTR指向的描述符表为全局描述符表GDT（Global Descriptor Table）。它包含系统中所有任务都可用的段描述符，通常包含描述操作系统所使用的代码段、数据段和堆栈段的描述符及各任务的LDT段等；全局描述符表只有一个。</p>
+<p>LDTR则指向局部描述符表LDT（Local Descriptor Table）。80386处理器设计成每个任务都有一个独立的LDT。它包含有每个任务私有的代码段、数据段和堆栈段的描述符，也包含该任务所使用的一些门描述符，如任务门和调用门描述符等。</p>
+<p>总结就是 全局描述符是全部进程共同享有的，局部描述符是每一个进程独有的。</p>
+<p><strong>全局描述符表（GDT）</strong></p>
+<ul>
+<li><strong>共享性质</strong>：GDT 是所有进程共同共享的表格，通常由操作系统在系统启动时初始化。</li>
+<li><strong>描述符类型</strong>：GDT 包含系统段描述符（如任务状态段 TSS）、代码段描述符、数据段描述符等。</li>
+<li><strong>用途</strong>：主要用于定义内核和操作系统核心部分的段描述符。进程间共享的段（如内核段）也定义在 GDT 中。</li>
+</ul>
+<p>问：GDT最多多少项？</p>
+<p><strong>局部描述符表（LDT）</strong></p>
+<ul>
+<li><strong>独有性质</strong>：每个进程可以有一个独立的 LDT，这些 LDT 是进程私有的。</li>
+<li><strong>描述符类型</strong>：LDT 通常包含用户模式下使用的段描述符，例如用户进程的代码段和数据段描述符。</li>
+<li><strong>用途</strong>：主要用于定义特定进程的段，这些段在进程间不共享，提供了每个进程独立的内存段。</li>
+</ul>
+<p><strong>GDT 和 LDT 的比较</strong></p>
+<ol>
+<li><strong>作用范围</strong>：<ul>
+<li><strong>GDT</strong>：系统范围内有效，定义了全局段，所有进程都可以访问。</li>
+<li><strong>LDT</strong>：进程范围内有效，定义了进程特有的段，仅该进程可访问。</li>
+</ul>
+</li>
+<li><strong>创建和管理</strong>：<ul>
+<li><strong>GDT</strong>：由操作系统在启动时创建并初始化，通常不会频繁修改。</li>
+<li><strong>LDT</strong>：由操作系统为每个进程创建和管理，<strong>进程切换时切换 LDT。</strong></li>
+</ul>
+</li>
+<li><strong>访问控制</strong>：<ul>
+<li><strong>GDT</strong>：通常包含操作系统和内核段描述符，具有较高的特权级别。</li>
+<li><strong>LDT</strong>：包含用户进程的段描述符，具有较低的特权级别，主要用于用户模式下的内存访问。</li>
+</ul>
+</li>
+</ol>
+<p>其中LDT &#x3D; A进程,那么就执行A进程的操作.切换进程,并且保存进程的各种信息.以及各种表. 如果我们换成了B进程,那么就会切换到B进程. </p>
+<h3 id="CPU从逻辑地址获取物理地址的过程梳理"><a href="#CPU从逻辑地址获取物理地址的过程梳理" class="headerlink" title="CPU从逻辑地址获取物理地址的过程梳理"></a>CPU从逻辑地址获取物理地址的过程梳理</h3><p>例如运行一个EXE，逻辑地址0xAC2710里面存的值是0x55，那么它真正的物理地址是多少呢？<br><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721551741368.png" alt="1721551741368"></p>
+<p>因为这是代码段，所以段选择子是CS,这里是0x1B<br><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721551972416.png" alt="1721551972416"></p>
+<h4 id="解析段选择子"><a href="#解析段选择子" class="headerlink" title="解析段选择子"></a>解析段选择子</h4><p>0x001B：0000 0000 0001 1011</p>
+<p>段选择子的结构如下：</p>
+<ul>
+<li><strong>索引（Index）</strong>: 13位，用于在GDT（全局描述符表）或LDT（局部描述符表）中索引段描述符。</li>
+<li><strong>TI位（Table Indicator）</strong>: 1位，指示段选择子是指向GDT（0）还是LDT（1）。</li>
+<li><strong>RPL（Request Privilege Level）</strong>: 2位，表示请求特权级。</li>
+</ul>
+<p>所以<br>Index位:0000 0000 0001 1  换成数字就是3，下标为3<br>TI位：0<br>RPL位：11</p>
+<blockquote>
+<p>段选择子中的RPL和段描述符的区别</p>
+<p><strong>RPL</strong> 表示当前请求者的权限级别，可能会根据上下文变化。例如，用户态代码（RPL &#x3D; 3）请求访问一个段时，其 RPL 会反映用户态的特权级别。</p>
+<p><strong>DPL</strong> 固定表示段的访问要求。代码段、数据段、系统段等的 DPL 决定了什么特权级别的代码可以访问这些段。</p>
+</blockquote>
+<h4 id="解析GDT表"><a href="#解析GDT表" class="headerlink" title="解析GDT表"></a>解析GDT表</h4><p>于是CPU现在就去找TI位指定的GDT表</p>
+<p>我们可以用Windbg查询GDT表</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721559588264.png" alt="1721559588264"></p>
+<p>可以看到GDT指向的地址是0x80b93800</p>
+<p>查看这个地址，上面根据段选择子得到的Index为3，也就是第三项，因为段描述符每一项是64位，也就是8个字节，因此第三项是箭头指向的位置</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721559969296.png" alt="1721559969296"></p>
+<p>接下来就是解析一下这个GDT：00cffb00 0000ffff</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721379218651.png" alt="**1721379218651**"></p>
+<ul>
+<li><strong>基地址（Base Address）</strong>: 分为基地址低位（Base Low）、基地址中位（Base Middle）、基地址高位（Base High），总共32位。</li>
+<li><strong>段限长（Limit）</strong>: 分为段限长低位（Limit Low）和段限长高位（Limit High），总共20位。</li>
+<li><strong>类型（Type）</strong>:  4位，用于指定段的类型和访问权限。 </li>
+<li><strong>S位（Descriptor Type）</strong>: 描述符类型（系统段或代码&#x2F;数据段）。系统段负责切换线程，API调用，和内存没关系，但是数据段（也叫存储段），就是负责内存权限的</li>
+<li><strong>DPL（Descriptor Privilege Level）</strong>: 描述符的特权级别。（用来判断是3环还是0环）决定哪一环可以用</li>
+<li><strong>P位（Present）</strong>: 段是否存在。1表示有效，0表示无效</li>
+<li><strong>AVL（Available for system use）</strong>: 系统可用位。</li>
+<li><strong>L位（Long mode）</strong>: 用于64位模式的指示位。</li>
+<li><strong>DB位（Default operation size &#x2F; Big）</strong>: 指示默认操作大小（16位或32位）。0表示16位段，1表示32位段</li>
+<li><strong>G位（Granularity）</strong>: 段限长的粒度（字节或4KB）<br>Base有32bit，但是Limit只有20bit，颗粒度设置为4KB，表示的地址最大为(2^20-1) * 4k     这样表示0x00000000~0xfffff000，则可以节省表的大小<br>limit计算公式 2^20 * 4k +0xfff</li>
+</ul>
+<p>解析结果如下：<br>Segment Limit:0xffffff<br>Base Address:0x00000000<br>Type:0xb<br>s:0x1<br>DPL:0x3（3环可用，和RPL匹配）<br>p:0x1<br>AVL:0x0<br>L:0x0<br>D&#x2F;B：1<br>G：1(说明粒度为1)</p>
+<p>limit&#x3D;(0xffffff-1) * 4k + 0xffff &#x3D; 4G，也就是在 Base Address 开始之后的4G的空间里面，属性是Type</p>
+<p>Type为0xB</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721548239971.png" alt="1721548239971"></p>
+<p>对照着表得到的属性是Execute&#x2F;Read,accessed</p>
+<p>逻辑地址&#x3D;&gt;物理地址 &#x3D; Base_Address +逻辑地址0xAC2710<br>所以当前举的例子的物理地址就是0xAC2710（在未开启分页机制，线性地址就是物理地址）</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721575906313.png" alt="1721575906313"></p>
+<h3 id="GDTR全局描述符表寄存器"><a href="#GDTR全局描述符表寄存器" class="headerlink" title="GDTR全局描述符表寄存器"></a>GDTR全局描述符表寄存器</h3><p>GDTR（全局描述符表寄存器，Global Descriptor Table Register）是一个48位寄存器，用于存储全局描述符表（GDT）的基地址和限制（limit）。它的组成和作用如下：</p>
+<p><strong>组成</strong></p>
+<ol>
+<li><strong>基地址（Base Address）</strong>：<ul>
+<li><strong>32位（32-bit）</strong>：存储GDT的基地址，即GDT在内存中的起始地址。</li>
+<li>用于指示全局描述符表在内存中的起始位置。</li>
+</ul>
+</li>
+<li><strong>限制（Limit）</strong>：<ul>
+<li><strong>16位（16-bit）</strong>：存储GDT的大小，以字节为单位。</li>
+<li>限制值表示GDT的最大字节偏移量，从基地址开始的范围。</li>
+<li>项的数目为：（gdtr.limit+1）&#x2F;8</li>
+</ul>
+</li>
+</ol>
+<p>用Windbg发现gdtr寄存器只有32位？</p>
+<p>但是其实这两个是同一个寄存器，gdtr是指Base_Address，gdtl指的是Limit</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721572359087-1721576036775.png" alt="1721572359087"></p>
+<h4 id="特权指令："><a href="#特权指令：" class="headerlink" title="特权指令："></a>特权指令：</h4><p><strong>LGDT（Load Global Descriptor Table Register）</strong>：该指令用来加载GDTR的值，设置全局描述符表的位置和长度。</p>
+<p><strong>SGDT（Store Global Descriptor Table Register）</strong>：该指令用来存储当前GDTR的值，通常用于调试和操作系统初始化过程。</p>
+<p>在Ring3是可以用SGDT这个指令来拿当前GDTR的信息的，但是不能用LGDT，也就是在三环，只能读取但是不能设置（要是在三环能设置那还得了）</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721638423045.png" alt="1721638423045"></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">GDTR</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">unsigned</span> <span class="type">short</span> Limit;</span><br><span class="line">	<span class="type">unsigned</span> <span class="type">int</span> Base_Address;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">struct</span> <span class="title class_">GDTR</span> gdtr = &#123; <span class="number">0</span> &#125;;</span><br><span class="line">	__asm</span><br><span class="line">	&#123;</span><br><span class="line">		SGDT [gdtr]</span><br><span class="line">	&#125;</span><br><span class="line">	cout &lt;&lt; hex &lt;&lt; <span class="string">&quot;0x&quot;</span> &lt;&lt; gdtr.Base_Address &lt;&lt; endl;</span><br><span class="line">	cout &lt;&lt; hex &lt;&lt; <span class="string">&quot;0x&quot;</span> &lt;&lt; gdtr.Limit &lt;&lt; endl;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><strong>但是64位不能内联汇编，用不了特权指令咋整</strong></p>
+<p>可以用联合编译，或者用_sgdt这些内部函数</p>
+<h4 id="多核CPU"><a href="#多核CPU" class="headerlink" title="多核CPU"></a>多核CPU</h4><p>但是有一个问题，就是我们发现，打印出来的Base_Address有时候会不一样，这是为什么？</p>
+<p>这是由于我们的处理器是多核的，所以系统会为每一个Cpu都创建一个表，所以Base_Address会不一样</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721639021219.png" alt="1721639021219"></p>
+<p>确定核数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Ring3</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    SYSTEM_INFO sysinfo;</span><br><span class="line">    <span class="built_in">GetSystemInfo</span>(&amp;sysinfo);</span><br><span class="line">    <span class="type">int</span> numCPU = sysinfo.dwNumberOfProcessors;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Number of cores: &quot;</span> &lt;&lt; numCPU &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//Ring0</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntddk.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span></span><br><span class="line"><span class="function">NTSTATUS <span class="title">DriverEntry</span><span class="params">(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(DriverObject);</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(RegistryPath);</span><br><span class="line"></span><br><span class="line">    ULONG numCPU = <span class="built_in">KeQueryActiveProcessorCount</span>(<span class="literal">NULL</span>);</span><br><span class="line">    <span class="built_in">DbgPrint</span>(<span class="string">&quot;Number of cores: %lu\n&quot;</span>, numCPU);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>在指定CPU上运行代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Ring3</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">DWORD WINAPI <span class="title">ThreadFunc</span><span class="params">(LPVOID lpParam)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 线程要执行的代码</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Running on CPU: &quot;</span> &lt;&lt; <span class="built_in">GetCurrentProcessorNumber</span>() &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    HANDLE hThread;</span><br><span class="line">    DWORD threadId;</span><br><span class="line">    DWORD_PTR affinityMask = (<span class="number">1</span> &lt;&lt; <span class="number">1</span>) | (<span class="number">1</span> &lt;&lt; <span class="number">3</span>) | (<span class="number">1</span> &lt;&lt; <span class="number">4</span>); <span class="comment">// 绑定到CPU 1, 3, 4</span></span><br><span class="line"></span><br><span class="line">    hThread = <span class="built_in">CreateThread</span>(<span class="literal">NULL</span>, <span class="number">0</span>, ThreadFunc, <span class="literal">NULL</span>, <span class="number">0</span>, &amp;threadId);</span><br><span class="line">    <span class="keyword">if</span> (hThread == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        std::cerr &lt;&lt; <span class="string">&quot;CreateThread failed&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">SetThreadAffinityMask</span>(hThread, affinityMask);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">WaitForSingleObject</span>(hThread, INFINITE);</span><br><span class="line">    <span class="built_in">CloseHandle</span>(hThread);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//Ring0</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntddk.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">DriverUnload</span><span class="params">(PDRIVER_OBJECT DriverObject)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(DriverObject);</span><br><span class="line">    <span class="built_in">DbgPrint</span>(<span class="string">&quot;Driver Unloaded\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">WorkItemRoutine</span><span class="params">(PDEVICE_OBJECT DeviceObject, PVOID Context)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(DeviceObject);</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(Context);</span><br><span class="line"></span><br><span class="line">    KAFFINITY affinityMask = (<span class="number">1</span> &lt;&lt; <span class="number">1</span>) | (<span class="number">1</span> &lt;&lt; <span class="number">3</span>) | (<span class="number">1</span> &lt;&lt; <span class="number">4</span>); <span class="comment">// 绑定到CPU 1, 3, 4</span></span><br><span class="line">    <span class="built_in">KeSetSystemAffinityThread</span>(affinityMask);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">DbgPrint</span>(<span class="string">&quot;Running on CPU: %lu\n&quot;</span>, <span class="built_in">KeGetCurrentProcessorNumber</span>());</span><br><span class="line"></span><br><span class="line">    <span class="built_in">KeRevertToUserAffinityThread</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span></span><br><span class="line"><span class="function">NTSTATUS <span class="title">DriverEntry</span><span class="params">(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(RegistryPath);</span><br><span class="line"></span><br><span class="line">    DriverObject-&gt;DriverUnload = DriverUnload;</span><br><span class="line"></span><br><span class="line">    PIO_WORKITEM workItem = <span class="built_in">IoAllocateWorkItem</span>(DriverObject-&gt;DeviceObject);</span><br><span class="line">    <span class="built_in">IoQueueWorkItem</span>(workItem, WorkItemRoutine, DelayedWorkQueue, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">DbgPrint</span>(<span class="string">&quot;Driver Loaded\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="分段机制已经被放弃"><a href="#分段机制已经被放弃" class="headerlink" title="分段机制已经被放弃"></a>分段机制已经被放弃</h2><p><strong>分段的缺点：</strong></p>
+<ol>
+<li><strong>外部碎片</strong>：由于段的大小不固定，可能会导致外部碎片问题。</li>
+<li><strong>复杂性</strong>：分段机制相对复杂，需要段描述符表和相应的硬件支持。</li>
+</ol>
+<p>分页机制 (Paging)</p>
+<p>分页机制是一种内存管理方案，它将内存划分为固定大小的页（如4KB），并将这些页映射到物理内存中的页框。页表存储了虚拟地址到物理地址的映射关系。</p>
+<p><strong>分页的优点：</strong></p>
+<ol>
+<li><strong>消除外部碎片</strong>：由于页的大小固定，不会出现外部碎片问题。</li>
+<li><strong>简化内存管理</strong>：操作系统可以更容易地管理内存，因为所有页的大小相同。</li>
+<li><strong>虚拟内存支持</strong>：可以将不常用的页换出到硬盘，提高内存利用率。</li>
+</ol>
+<p>用Windbg查看，发现4GB空间Base全为0，Limit为0xffffffff<br>说明逻辑地址直接等于了线性地址，变相放弃了分段机制！</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/1721575535882-1721576036776.png" alt="1721575535882"></p>
+<p><strong>下一章详细说分页机制</strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/">http://example.com/Windows%E5%86%85%E6%A0%B89(%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Windows%E5%86%85%E6%A0%B8/">Windows内核</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/IDA%E4%BD%8D%E6%AE%B5/" title="IDA位段的应用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">IDA位段的应用</div></div></a></div><div class="next-post pull-right"><a href="/Windows%E5%86%85%E6%A0%B88(%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%92%8C%E5%90%8C%E6%AD%A5)/" title="Windows内核（8）——多线程&amp;内核"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Windows内核（8）——多线程&amp;内核</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/Windows%E5%86%85%E6%A0%B81(%E5%86%85%E6%A0%B8%E5%88%9D%E6%8E%A2&%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F)/" title="Windows内核（1）——内核初探&amp;编写第一个驱动程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-10</div><div class="title">Windows内核（1）——内核初探&amp;编写第一个驱动程序</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B810(10-10-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（10）——分页机制（10-10-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-27</div><div class="title">Windows内核（10）——分页机制（10-10-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（11）——分页机制（2-9-9-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-30</div><div class="title">Windows内核（11）——分页机制（2-9-9-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B812(%E4%BF%AE%E6%94%B9%E5%AF%B9%E6%96%B9%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98)/" title="Windows内核（12）——通过CR3修改进程内存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-03</div><div class="title">Windows内核（12）——通过CR3修改进程内存</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B814(%E8%A1%A5%E7%AC%94%E8%AE%B0)/" title="Windows内核（14）——补笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-17</div><div class="title">Windows内核（14）——补笔记</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/" title="Windows内核（15）——键盘Hook，调用门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-20</div><div class="title">Windows内核（15）——键盘Hook，调用门</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windows"><span class="toc-number">1.</span> <span class="toc-text">Windows</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">保护模式下的内存管理：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.1.1.</span> <span class="toc-text">三种模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8A%A4%E5%86%85%E5%AD%98"><span class="toc-number">1.1.2.</span> <span class="toc-text">保护模式如何保护内存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%88%86%E6%AE%B5%E7%AE%A1%E7%90%86%EF%BC%9F"><span class="toc-number">1.1.3.</span> <span class="toc-text">什么是分段管理？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A8%E6%A0%BC%E6%98%AF%E5%A6%82%E4%BD%95%E5%81%9A"><span class="toc-number">1.1.4.</span> <span class="toc-text">表格是如何做</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%EF%BC%88Segment-Descriptor%EF%BC%89"><span class="toc-number">1.1.4.1.</span> <span class="toc-text">段描述符（Segment Descriptor）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E4%B8%8E%E5%85%B1%E4%BA%AB"><span class="toc-number">1.1.4.2.</span> <span class="toc-text">内存映射与共享</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BA%BF%E6%80%A7%E5%9C%B0%E5%9D%80%E7%9A%84%E8%8C%83%E5%9B%B4%E6%80%8E%E4%B9%88%E8%AE%A1%E7%AE%97"><span class="toc-number">1.1.5.</span> <span class="toc-text">线性地址的范围怎么计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AE%B5%E9%80%89%E6%8B%A9%E5%AD%90%EF%BC%8C%E8%BF%9B%E8%A1%8C%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.1.6.</span> <span class="toc-text">段选择子，进行查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0%E7%AC%A6%EF%BC%8C%E5%85%A8%E5%B1%80%E6%8F%8F%E8%BF%B0%E7%AC%A6%EF%BC%8C%E5%B1%80%E9%83%A8%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="toc-number">1.1.7.</span> <span class="toc-text">描述符，全局描述符，局部描述符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CPU%E4%BB%8E%E9%80%BB%E8%BE%91%E5%9C%B0%E5%9D%80%E8%8E%B7%E5%8F%96%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%9A%84%E8%BF%87%E7%A8%8B%E6%A2%B3%E7%90%86"><span class="toc-number">1.1.8.</span> <span class="toc-text">CPU从逻辑地址获取物理地址的过程梳理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90%E6%AE%B5%E9%80%89%E6%8B%A9%E5%AD%90"><span class="toc-number">1.1.8.1.</span> <span class="toc-text">解析段选择子</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90GDT%E8%A1%A8"><span class="toc-number">1.1.8.2.</span> <span class="toc-text">解析GDT表</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GDTR%E5%85%A8%E5%B1%80%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%A1%A8%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.1.9.</span> <span class="toc-text">GDTR全局描述符表寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%89%B9%E6%9D%83%E6%8C%87%E4%BB%A4%EF%BC%9A"><span class="toc-number">1.1.9.1.</span> <span class="toc-text">特权指令：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E6%A0%B8CPU"><span class="toc-number">1.1.9.2.</span> <span class="toc-text">多核CPU</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%AE%B5%E6%9C%BA%E5%88%B6%E5%B7%B2%E7%BB%8F%E8%A2%AB%E6%94%BE%E5%BC%83"><span class="toc-number">1.2.</span> <span class="toc-text">分段机制已经被放弃</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows内核（13）——TSS任务段和中断门初探 | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windows参考文章： Linux 学习笔记（九）：基于 TSS 的进程切换-CSDN博客   任务状态段TSS及TSS描述符、局部描述符表LDT及LDT描述符_tss段描述符-CSDN博客   保护模式第六讲-IDT表-中断门 陷阱门 任务门 - iBinary - 博客园 (cnblogs.com)  上一节的通过Cr3任意读写如何防？ 如何在自己运行的时候cr3是正确的，但是别的进程拿的时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows内核（13）——TSS任务段和中断门初探">
+<meta property="og:url" content="http://example.com/Windows%E5%86%85%E6%A0%B813(TSS%E4%BB%BB%E5%8A%A1%E6%AE%B5%E5%92%8C%E4%B8%AD%E6%96%AD%E9%97%A8%E5%88%9D%E6%8E%A2)/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Windows参考文章： Linux 学习笔记（九）：基于 TSS 的进程切换-CSDN博客   任务状态段TSS及TSS描述符、局部描述符表LDT及LDT描述符_tss段描述符-CSDN博客   保护模式第六讲-IDT表-中断门 陷阱门 任务门 - iBinary - 博客园 (cnblogs.com)  上一节的通过Cr3任意读写如何防？ 如何在自己运行的时候cr3是正确的，但是别的进程拿的时">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-08-05T14:08:00.000Z">
+<meta property="article:modified_time" content="2024-08-05T14:08:00.000Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Windows内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/Windows%E5%86%85%E6%A0%B813(TSS%E4%BB%BB%E5%8A%A1%E6%AE%B5%E5%92%8C%E4%B8%AD%E6%96%AD%E9%97%A8%E5%88%9D%E6%8E%A2)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows内核（13）——TSS任务段和中断门初探',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-08-05 22:08:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Windows内核（13）——TSS任务段和中断门初探</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-08-05T14:08:00.000Z" title="发表于 2024-08-05 22:08:00">2024-08-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-08-05T14:08:00.000Z" title="更新于 2024-08-05 22:08:00">2024-08-05</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Windows内核（13）——TSS任务段和中断门初探"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h2><p> <a target="_blank" rel="noopener" href="https://blog.csdn.net/Amentos/article/details/130871776">Linux 学习笔记（九）：基于 TSS 的进程切换-CSDN博客</a> </p>
+<p> <a target="_blank" rel="noopener" href="https://blog.csdn.net/MJ_Lee/article/details/104419980">任务状态段TSS及TSS描述符、局部描述符表LDT及LDT描述符_tss段描述符-CSDN博客</a> </p>
+<p> <a target="_blank" rel="noopener" href="https://www.cnblogs.com/iBinary/p/13325316.html#_label0">保护模式第六讲-IDT表-中断门 陷阱门 任务门 - iBinary - 博客园 (cnblogs.com)</a> </p>
+<p>上一节的通过Cr3任意读写如何防？</p>
+<p><strong>如何在自己运行的时候cr3是正确的，但是别的进程拿的时候是错误的？</strong> </p>
+<blockquote>
+<ol>
+<li><strong>中断&#x2F;系统调用钩子</strong></li>
+</ol>
+<p>在操作系统级别拦截系统调用或中断处理程序，并在适当的时候修改 CR3。通过这种方式，可以在当前进程执行时使用正确的 CR3，而在其他进程尝试获取 CR3 时返回伪造的值。</p>
+<p><strong>实现步骤</strong>：</p>
+<ul>
+<li>钩住所有对 CR3 的访问，包括直接读取寄存器、查询系统状态等。</li>
+<li>当检测到当前进程访问时，返回正确的 CR3；否则，返回伪造的 CR3。</li>
+</ul>
+<ol start="2">
+<li><strong>特权指令拦截</strong></li>
+</ol>
+<p>在具有硬件虚拟化技术（如 Intel VT-x、AMD-V）的环境中，可以通过设置控制寄存器的访问权限，使用虚拟化技术拦截对 CR3 的访问。</p>
+<p><strong>实现步骤</strong>：</p>
+<ul>
+<li>使用虚拟化技术将自己运行在虚拟机内，虚拟机管理程序（hypervisor）可以拦截并监控所有对 CR3 的访问。</li>
+<li>通过检测访问者的上下文决定返回正确的还是伪造的 CR3。</li>
+</ul>
+<ol start="3">
+<li><strong>内核级别的钩子或补丁</strong></li>
+</ol>
+<p>修改操作系统的内核代码，使得不同的进程对 CR3 的访问返回不同的结果。这需要深入理解操作系统的内核结构和运行机制。</p>
+<p><strong>实现步骤</strong>：</p>
+<ul>
+<li>找到操作系统中处理 CR3 访问的代码路径，通常涉及上下文切换、进程管理等模块。</li>
+<li>在这些位置添加代码，判断访问者身份，根据需要返回不同的 CR3。</li>
+</ul>
+<ol start="4">
+<li><strong>使用隐藏技术和自我保护</strong></li>
+</ol>
+<p>这种方法涉及在当前进程运行时使用正确的 CR3，但隐藏自己的页表，使得外部的工具或进程无法正确访问或检测。</p>
+<p><strong>实现步骤</strong>：</p>
+<ul>
+<li>使用内存隐藏技术，如设置页表不可访问、动态切换页表等。</li>
+<li>在需要的时候切换回伪造的 CR3，使其他进程看到的页表不同。</li>
+</ul>
+<ol start="5">
+<li><strong>多态性&#x2F;自修改代码</strong></li>
+</ol>
+<p>通过在代码执行过程中动态修改代码或数据，避免外部检测工具获取真实信息。</p>
+<p><strong>实现步骤</strong>：</p>
+<ul>
+<li>定期或随机地修改伪造的页表和数据结构。</li>
+<li>使用不同的机制自我保护，避免外部分析。</li>
+</ul>
+</blockquote>
+<h2 id="GDT和IDT"><a href="#GDT和IDT" class="headerlink" title="GDT和IDT"></a>GDT和IDT</h2><p><strong>GDT</strong>：主要存储段描述符（代码段、数据段、TSS描述符等）和调用门。可以包含任务门，但任务门更常用于IDT。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(push, 1) </span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">GDTR</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> limit;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> base;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(pop)</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>IDT</strong>：专门用于存储中断和异常处理的门描述符，包括中断门、陷阱门和任务门。每个核都有一个IDT，也就是如果要Hook，就要所有核心都要HOOK</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(push, 1) <span class="comment">// 确保结构体按 1 字节对齐</span></span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">IDTR</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> limit; <span class="comment">// IDT 表界限（长度），单位为字节</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> base;  <span class="comment">// IDT 表基址（物理地址）</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(pop)</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722687153176.png" alt="1722687153176"></p>
+<table>
+<thead>
+<tr>
+<th>Type(二进制)</th>
+<th>描述符类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0000</td>
+<td>保留</td>
+<td>未定义，保留</td>
+</tr>
+<tr>
+<td>0001</td>
+<td>16位TSS(可用)</td>
+<td>可用的16位任务状态段</td>
+</tr>
+<tr>
+<td>0010</td>
+<td>LDT</td>
+<td>局部描述符表</td>
+</tr>
+<tr>
+<td>0011</td>
+<td>16位TSS(忙碌)</td>
+<td>忙碌的16位任务状态段</td>
+</tr>
+<tr>
+<td>0100</td>
+<td>16位调用门</td>
+<td>16位调用门（Call Gate）</td>
+</tr>
+<tr>
+<td>0101</td>
+<td>任务门</td>
+<td>任务门（Task Gate）</td>
+</tr>
+<tr>
+<td>0110</td>
+<td>16位中断门</td>
+<td>16位中断门（Interrupt Gate）</td>
+</tr>
+<tr>
+<td>0111</td>
+<td>16位陷阱门</td>
+<td>16位陷阱门（Trap Gate）</td>
+</tr>
+<tr>
+<td>1000</td>
+<td>保留</td>
+<td>保留，未定义</td>
+</tr>
+<tr>
+<td>1001</td>
+<td>32位TSS（可用）</td>
+<td>可用的32位任务状态段</td>
+</tr>
+<tr>
+<td>1010</td>
+<td>保留</td>
+<td>保留，未定义</td>
+</tr>
+<tr>
+<td>1011</td>
+<td>32位TSS（忙碌）</td>
+<td>忙碌的32位任务状态段</td>
+</tr>
+<tr>
+<td>1100</td>
+<td>32位调用门</td>
+<td>32位调用门</td>
+</tr>
+<tr>
+<td>1101</td>
+<td>保留</td>
+<td>未定义，保留</td>
+</tr>
+<tr>
+<td>1110</td>
+<td>32位中断门</td>
+<td>32位中断门</td>
+</tr>
+<tr>
+<td>1111</td>
+<td>32位陷阱门</td>
+<td>32位陷阱门</td>
+</tr>
+</tbody></table>
+<h2 id="系统段的简略介绍"><a href="#系统段的简略介绍" class="headerlink" title="系统段的简略介绍"></a>系统段的简略介绍</h2><ol>
+<li><strong>任务状态段TSS(Task-State Segment)</strong>:<ul>
+<li>TSS 是一种特权结构，保存了任务切换所需的处理器状态。分为 16 位和 32 位两种。</li>
+<li>可用的 TSS 描述符（<code>Type</code> 为 0001 或 1001）表示该 TSS 可被加载为当前任务。</li>
+<li>忙碌的 TSS 描述符（<code>Type</code> 为 0011 或 1011）表示该 TSS 正在使用。</li>
+</ul>
+</li>
+<li><strong>局部描述符表（LDT）</strong>:<ul>
+<li>LDT 是一个描述符表，可以定义属于特定任务或进程的段。LDT 描述符（<code>Type</code> 为 0010）用于在 GDT 中指定一个 LDT 的位置和大小。</li>
+</ul>
+</li>
+<li><strong>调用门（Call Gate）</strong>:<ul>
+<li>调用门用于实现不同特权级别之间的安全调用。16 位和 32 位调用门（<code>Type</code> 分别为 0100 和 1100）指定了目标代码段和入口点，用来实现系统调用。</li>
+</ul>
+</li>
+<li><strong>任务门（Task Gate）</strong>:<ul>
+<li>任务门用于任务切换，直接切换到指定的 TSS。任务门描述符（<code>Type</code> 为 0101）保存了目标 TSS 的选择子。</li>
+</ul>
+</li>
+<li><strong>中断门（Interrupt Gate）</strong>:<ul>
+<li>中断门用于处理中断或异常。16 位和 32 位中断门（<code>Type</code> 分别为 0110 和 1110）指定了中断处理程序的入口地址。中断门将中断控制转移到特定的处理程序，并自动清除中断标志（IF），以防止嵌套中断。</li>
+</ul>
+</li>
+<li><strong>陷阱门（Trap Gate）</strong>:<ul>
+<li>陷阱门类似于中断门，但在转移控制权时不会清除中断标志。16 位和 32 位陷阱门（<code>Type</code> 分别为 0111 和 1111）用于处理需要保留中断能力的情况。</li>
+</ul>
+</li>
+</ol>
+<h2 id="TSS任务状态段"><a href="#TSS任务状态段" class="headerlink" title="TSS任务状态段"></a>TSS任务状态段</h2><p>在一个多任务环境中，当发生了任务切换，需保护现场，因此每个任务的应当用一个额外的<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=%E5%86%85%E5%AD%98&spm=1001.2101.3001.7020">内存</a>区域保存相关信息，即任务状态段(TSS)；TSS格式固定，104个字节，处理器固件能识别TSS中元素，并在任务切换时读取其中信息。  TSS 就是内存中的一个<strong>结构体</strong>，里面包含了 几乎所有的 CPU 寄存器的映像 。 </p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722739623369.png" alt="1722739623369"></p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722739717275.png" alt="1722739717275"></p>
+<p>每创建一个任务，就要创建一个104字节的TSS</p>
+<p>过程就是首先生成一个TSS，然后放到GDT里面，就可以得到一个下标（段选择子）</p>
+<p><strong>TR寄存器</strong></p>
+<p>TR（Task Register）即任务寄存器，指向当前进程对应的 TSS 结构体。 </p>
+<p>TR 指向当前进程对应的 TSS 结构体，但具体是怎么 “指向” 的呢？—— 通过 GDT 表。具体实现为：TR 存储当前进程的 TSS 结构体的<strong>段选择符</strong>，通过<strong>段选择符</strong>在 GDT 表中找到对应 TSS 结构体的内存位置。</p>
+<p>在Windbg里面可以用 dg 指令去解析这个段选择子</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722739457717.png" alt="1722739457717"></p>
+<p>如何用汇编切换tr寄存器？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mov ax,28</span><br><span class="line">ldtr ax</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><strong>TSS 切换</strong></p>
+<p>所谓的 TSS 切换 就是将 CPU 中 几乎所有的寄存器 都复制到 TR 指向的那个 TSS 结构体中保存起来，同时还要找到一个目标 TSS（即将要切换到的下一个进程所对应的 TSS），并将其中存放的寄存器映像 “扣” 在CPU 上，就完成了执行现场的切换，如下图所示。 </p>
+<p><strong>TSS是一个失败的设计</strong></p>
+<p>GDT表只能放8192项，而线程的最大数量是65536个，这下GDT放不下了，咋整？？</p>
+<p>所以TSS需要自己管理</p>
+<p>在结构体 _KPCR中（fs:0）有结构体 _KPRCB</p>
+<p>在_KPRCB里面有一个 Ptr32 _KTSS结构体</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722741975119.png" alt="1722741975119"></p>
+<p>这样查出来的TSS地址和dg tr 查出来的地址是一样的</p>
+<p>目前操作系统好像已经不用GDT存了，但是我们仍然可以用Tr寄存器去查询TSS的地址</p>
+<p>做法是改掉tr寄存器作为段选择子查出来的地址就可以不需要GDT存储了</p>
+<p>没有浮点寄存器？浮点处理器是单独的处理器，叫协助处理器，当需要计算浮点的时候，cpu就会叫这个处理器去处理</p>
+<h2 id="中断"><a href="#中断" class="headerlink" title="中断"></a>中断</h2><h3 id="什么是中断"><a href="#什么是中断" class="headerlink" title="什么是中断"></a>什么是中断</h3><p>CPU 必须支持中断 不管你当前执行了多少流程. 但是只要你操作键盘. 那么CPU就会第一时间响应</p>
+<p>比如 win + D 显示桌面 win + L 锁屏，中断时基于硬件的.</p>
+<p><strong>可屏蔽中断</strong><br>比如键盘. 键盘是可屏蔽中断</p>
+<p><strong>不可屏蔽中断</strong>.<br>当我们拔掉电源之后,CPU并不是直接熄灭的. 而是有电容的，此时不管你IF是什么.都会执行 int 2中断. 来进行一些收尾的动作.</p>
+<p>inter手册说. 中断和异常 是<strong>强制性执行流的转移</strong> 也就是不管你处于那个环境.只要有中断 和异常.都会强制执行的.换句话来讲就是 从<strong>当前流程强制转到另一个流程</strong></p>
+<p>中断是可以进行软件模拟的. 称为软中断. 也就是通过 <strong>int n</strong> 来进行模拟. 我们构造的中断门. 并且进行int n 模拟 就是模拟了一次软中断</p>
+<p>inter手册所说. 任何<strong>可屏蔽中断</strong> 可以通过使用 interl 架构定义的<strong>中断向量(0&#96;255)</strong> 也就是说有一个<strong>中断表. 大小是255项.</strong> 通过 E Flags 中的 if 位 可以进行屏蔽 （对于不可屏蔽中断无效）</p>
+<p>软件中断模拟的注意事项. inter手册所属. 0-255 我们都是可以通过 int n进行模拟的. 但是有一个注意的问题就是. 比如不可屏蔽中断. int 2. <strong>如果我们用int 2来进行模拟 是不会产生真正的效果的</strong> 意思就是说.你执行int 2确实是执行了. 但是硬件上并没有激活. 也就是说你是假的</p>
+<p>inter手册所说 0-31中断向量是给 NMI中断使用的.也就是给CPU使用的. 剩下的32 - 255 才是给用户使用的.</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722848982075.png" alt="1722848982075"></p>
+<h3 id="中断门："><a href="#中断门：" class="headerlink" title="中断门："></a>中断门：</h3><p>门的本质一样的，就是去IDT表找，根据IDT表找到对应的段选择子然后加载 </p>
+<p>中断门可以将处理器从较低特权级（如用户模式）切换到较高特权级（如内核模式）。 </p>
+<p>中断门用于处理硬件中断和软件异常。当中断发生时，处理器使用IDT查找相应的中断门，然后跳转到由该门描述的中断处理程序。 </p>
+<p>当中断发生时，处理器会自动保存当前的指令指针（EIP或RIP）和标志寄存器（EFLAGS）的状态，并跳转到中断处理程序。这使得中断处理程序可以在执行完后恢复到中断前的状态。 </p>
+<p>中断门 是由int xxx汇编指令来进行触发的. 进而去IDT表中中寻找中断门段描述符</p>
+<p>int xxx； 		xxx是索引. 是IDT表中的索引. IDT.base + xxx * 8 &#x3D; 实际的中断门所在的位置.</p>
+<p>也可以理解为 IDT[xxx -1]</p>
+<p>例如 int 3 查找的就是 IDT[2] 索引 数组从下标从0开始 0 1 2 正好查找的是第三项</p>
+<p>相比于16位，32位系统因为多了保护模式，因此中断门不仅描述了函数地址，还有DPL（描述特权级），参数等，</p>
+<p>IDT表基地址存在于IDTR寄存器，用来存陷阱门，中断门</p>
+<h3 id="解析中断门："><a href="#解析中断门：" class="headerlink" title="解析中断门："></a>解析中断门：</h3><p><img src="/Windows%E5%86%85%E6%A0%B813/1722846566673.png" alt="1722846566673"></p>
+<p>在32位模式下，中断门描述符占8字节（64位），结构如下：</p>
+<ul>
+<li><p><strong>Offset 15:0</strong>（0-15位）：中断处理程序入口地址的低16位。</p>
+</li>
+<li><p><strong>Selector</strong>（16-31位）：段选择器，指向中断处理程序所在的代码段。</p>
+</li>
+<li><p><strong>Reserved</strong>（32-39位）：保留位，通常置为0。</p>
+</li>
+<li><p>Type and Attributes</p>
+<p>（40-47位）：描述符的类型和一些控制属性。</p>
+<ul>
+<li><strong>Type</strong>（40-43位）：固定为1110（0xE），表示这是一个32位中断门。</li>
+<li><strong>DPL（Descriptor Privilege Level）</strong>（45-46位）：描述符特权级别，0为最高优先级，3为最低优先级。</li>
+<li><strong>P（Present）</strong>（47位）：指示描述符是否有效，1表示有效。</li>
+</ul>
+</li>
+<li><p><strong>Offset 31:16</strong>（48-63位）：中断处理程序入口地址的高16位。</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(push, 1) <span class="comment">// 确保结构体按 1 字节对齐</span></span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">InterruptGateDescriptor</span> &#123;</span><br><span class="line">    <span class="type">uint16_t</span> offset_low;     <span class="comment">// 中断处理程序入口地址的低 16 位</span></span><br><span class="line">    <span class="type">uint16_t</span> selector;       <span class="comment">// 目标代码段选择器</span></span><br><span class="line">    <span class="type">uint8_t</span>  reserved;   	 <span class="comment">// 保留位（通常为 0）</span></span><br><span class="line">    <span class="type">uint8_t</span>  type : <span class="number">5</span>;       <span class="comment">// 门类型，11110 表示 32 位中断门</span></span><br><span class="line">    <span class="type">uint8_t</span>  dpl : <span class="number">2</span>;        <span class="comment">// 描述符特权级别（DPL），通常为 0</span></span><br><span class="line">    <span class="type">uint8_t</span>  present : <span class="number">1</span>;    <span class="comment">// 存在位（P），1 表示有效</span></span><br><span class="line">    <span class="type">uint16_t</span> offset_high;    <span class="comment">// 中断处理程序入口地址的高 16 位</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(pop)</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="中断门的Call调用流程流程图"><a href="#中断门的Call调用流程流程图" class="headerlink" title="中断门的Call调用流程流程图"></a>中断门的Call调用流程流程图</h3><p><img src="/Windows%E5%86%85%E6%A0%B813/1722843507962.png" alt="1722843507962"></p>
+<p>1.首先通过中断号寻址到中断门 ,然后从中断门中分别取出记录的 offset(函数偏移) + 代码段段选择子</p>
+<p>2.然后根据代码段段选择子. 去GDT表或者LDT表中查询 代码段描述符</p>
+<p>3.从代码段描述符中取出记录的 Base(基地址)，还要查个权限，没有问题就进入第四步</p>
+<p>4.取出的基地址与中断门中记录额函数偏移(offset)相加得到一个真正的函数地址.</p>
+<p>5.进行调用</p>
+<h2 id="任务门和任务状态段的关系"><a href="#任务门和任务状态段的关系" class="headerlink" title="任务门和任务状态段的关系"></a>任务门和任务状态段的关系</h2><p><strong>任务状态段（TSS）</strong></p>
+<p>TSS是一个数据结构，用于保存任务的CPU状态。它包含了任务切换时所需的寄存器值、堆栈指针等信息。每个任务都有一个TSS，描述了任务在切换时需要保存和恢复的状态。</p>
+<p><strong>任务门（Task Gate）</strong></p>
+<p>任务门是IDT或GDT中的一个特殊描述符，用于触发任务切换。当处理器遇到任务门时，会通过任务门指向的TSS描述符切换到另一个任务。</p>
+<p><strong>关系和工作机制</strong></p>
+<ol>
+<li><strong>任务门指向TSS描述符</strong>：<ul>
+<li>任务门不直接包含TSS的信息，而是指向一个TSS描述符。</li>
+<li>TSS描述符存储在GDT或LDT中，描述了具体TSS的位置和大小。</li>
+</ul>
+</li>
+<li><strong>任务切换</strong>：<ul>
+<li>当处理器遇到任务门（例如在IDT中的任务门描述符），处理器会通过任务门找到对应的TSS描述符。</li>
+<li>处理器根据TSS描述符找到具体的TSS，并加载TSS中的状态，从而切换到新的任务。</li>
+<li>在任务切换过程中，处理器会保存当前任务的状态到当前任务的TSS，并从新的TSS加载新的任务的状态。</li>
+</ul>
+</li>
+</ol>
+<p><strong>总结</strong></p>
+<ul>
+<li><strong>TSS</strong>：保存和恢复任务状态的具体数据结构。</li>
+<li><strong>任务门</strong>：指向TSS描述符的描述符，用于触发任务切换。</li>
+</ul>
+<h2 id="三种Hook技术"><a href="#三种Hook技术" class="headerlink" title="三种Hook技术"></a>三种Hook技术</h2><p>先看看，后续有机会学到上演示代码</p>
+<p><strong>1. HOOK IDT</strong></p>
+<p><strong>IDT Hooking</strong> 是一种修改中断描述符表（IDT）的技术。通过修改IDT中的中断门或陷阱门的指向，可以重定向中断或异常处理程序。以下是IDT Hooking的主要应用：</p>
+<ul>
+<li><strong>拦截和监控中断和异常</strong>：可以用来捕获特定的中断或异常，例如捕获系统调用来监控或修改其行为。</li>
+<li><strong>实现调试功能</strong>：可以通过Hook系统中断来捕获异常，帮助开发者调试程序。</li>
+<li><strong>恶意软件</strong>：某些恶意软件可能使用这种技术来隐藏自己或劫持合法程序的控制流。</li>
+</ul>
+<p><strong>注意</strong>：IDT Hooking 是一个非常敏感的操作，因为它直接修改系统关键的中断处理机制。误用可能导致系统不稳定或崩溃。</p>
+<p><strong>2. APIC 重定位 Hook</strong></p>
+<p><strong>APIC（Advanced Programmable Interrupt Controller）重定位 Hook</strong> 是一种修改和控制APIC的技术。APIC用于管理和分配中断请求（IRQ）。通过这种技术，可以实现以下功能：</p>
+<ul>
+<li><strong>中断管理和优化</strong>：改变中断的分发方式，提高系统性能或减少中断延迟。</li>
+<li><strong>安全和监控</strong>：监控和控制硬件中断，以检测异常活动或保护系统安全。</li>
+</ul>
+<p>重定位APIC通常涉及修改 <strong>APIC基址寄存器（APIC Base Address Register, APICBAR）</strong> 或 <strong>中断重映射表（Interrupt Remapping Table）</strong>，这些操作通常需要特权级别较高的访问权限。</p>
+<p><strong>3. Hook 驱动</strong></p>
+<p><strong>Hook 驱动</strong> 是指拦截和修改驱动程序的行为。驱动程序是操作系统与硬件之间的接口，它们处理硬件请求并将其转换为操作系统可以理解的格式。通过Hook驱动程序，可以实现：</p>
+<ul>
+<li><strong>功能扩展</strong>：为现有驱动程序添加额外的功能或修改其行为。</li>
+<li><strong>安全监控</strong>：拦截和分析驱动程序的输入和输出数据，以检测和防止恶意活动。</li>
+<li><strong>调试</strong>：捕获和记录驱动程序的调用，以帮助开发和调试硬件设备。</li>
+</ul>
+<p>Hook驱动的技术通常涉及修改内核空间的代码或数据结构，这通常需要较高的系统权限，类似于内核模式的DLL注入技术。</p>
+<h2 id="屏蔽中断"><a href="#屏蔽中断" class="headerlink" title="屏蔽中断"></a>屏蔽中断</h2><h3 id="屏蔽INT-3中断"><a href="#屏蔽INT-3中断" class="headerlink" title="屏蔽INT 3中断"></a>屏蔽INT 3中断</h3><p>首先解析一下INT 3中断在IDT表的中断门表项</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722863435543.png" alt="1722863435543"></p>
+<p>按照之前说的解析一下中断门</p>
+<p>在32位模式下，中断门描述符占8字节（64位），结构如下：</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722846566673.png" alt="1722846566673"></p>
+<ul>
+<li><p><strong>Offset 15:0</strong>（0-15位）：中断处理程序入口地址的偏移低16位。</p>
+</li>
+<li><p><strong>Selector</strong>（16-31位）：段选择器，指向中断处理程序所在的代码段。</p>
+</li>
+<li><p><strong>Reserved</strong>（32-39位）：保留位，通常置为0。</p>
+</li>
+<li><p>Type and Attributes</p>
+<p>（40-47位）：描述符的类型和一些控制属性。</p>
+<ul>
+<li><strong>Type</strong>（40-43位）：固定为1110（0xE），表示这是一个32位中断门。</li>
+<li><strong>DPL（Descriptor Privilege Level）</strong>（45-46位）：描述符特权级别，0为最高优先级，3为最低优先级。</li>
+<li><strong>P（Present）</strong>（47位）：指示描述符是否有效，1表示有效。</li>
+</ul>
+</li>
+<li><p><strong>Offset 31:16</strong>（48-63位）：中断处理程序入口地址的偏移高16位。</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(push, 1) <span class="comment">// 确保结构体按 1 字节对齐</span></span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">InterruptGateDescriptor</span> &#123;</span><br><span class="line">    <span class="type">uint16_t</span> offset_low;     <span class="comment">// 中断处理程序入口地址的低 16 位</span></span><br><span class="line">    <span class="type">uint16_t</span> selector;       <span class="comment">// 目标代码段选择器</span></span><br><span class="line">    <span class="type">uint8_t</span>  reserved : 	 <span class="comment">// 保留位（通常为 0）</span></span><br><span class="line">    <span class="type">uint8_t</span>  type : <span class="number">5</span>;       <span class="comment">// 门类型，11110 表示 32 位中断门</span></span><br><span class="line">    <span class="type">uint8_t</span>  dpl : <span class="number">2</span>;        <span class="comment">// 描述符特权级别（DPL），通常为 0</span></span><br><span class="line">    <span class="type">uint8_t</span>  present : <span class="number">1</span>;    <span class="comment">// 存在位（P），1 表示有效</span></span><br><span class="line">    <span class="type">uint16_t</span> offset_high;    <span class="comment">// 中断处理程序入口地址的高 16 位</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(pop)</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<p>所以我们可以得到以下信息：<br>中断处理程序入口地址：0x83c4bfb0<br>段选择子（因为是代码段，所以是cs）：0x8（可以查出是0环）<br>Type位：01110<br>DPL：3（最低优先级）<br>P：1（有效）</p>
+<p>c++</p>
+<p>当然也有自动解析IDT的命令：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">!idt -a</span><br></pre></td></tr></table></figure>
+
+<p>这会列出全部的解析过的IDT表项</p>
+<p>然后会发现有0x20 ~ 0x29是空的，这是留给用户自己的</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722864645714.png" alt="1722864645714"></p>
+<p>根据段选择子，查出来段基址是0</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722863886021.png" alt="1722863886021"></p>
+<p>因此函数的入口地址为：Base + offset &#x3D; 0 + 0x83c4bfb0 &#x3D; 0x83c4bfb0</p>
+<p>也就是说产生INT3异常之后，代码就会强制转移至0x83c4bfb0</p>
+<p>那么如何屏蔽呢？</p>
+<p>可以直接把中断门表项抹除吗？当然不行了，因为这样Cpu会崩溃，直接寄</p>
+<p>我们可以直接Return，但是不能用RET指令，而是要用IRETD</p>
+<p>修改以后，我们回到调试器，发现把软件拉到调试器，根本断不下来，就直接运行了，甚至于在Windbg也断不下来</p>
+<p><img src="/Windows%E5%86%85%E6%A0%B813/1722865073398.png" alt="1722865073398"></p>
+<p>当然这样会屏蔽所有程序的INT 3 中断，我们可以在HOOK中断的时候加一个判断即可，判断是不是需要保护的程序，如果是，那么将屏蔽中断</p>
+<p>解决方法：调试器也上驱动，这样对抗，才可以调试</p>
+<p>注册中断代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;header.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(push, 1)  <span class="comment">// 强制1字节对齐</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">InterruptGateDescriptor</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> offset_low;     <span class="comment">// 中断处理程序入口地址的低 16 位</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> selector;       <span class="comment">// 目标代码段选择器</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  reserved;   	 <span class="comment">// 保留位（通常为 0）</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> type : <span class="number">5</span>;       <span class="comment">// 门类型，11110 表示 32 位中断门</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  dpl : <span class="number">2</span>;        <span class="comment">// 描述符特权级别（DPL），通常为 0</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  present : <span class="number">1</span>;    <span class="comment">// 存在位（P），1 表示有效</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> offset_high;    <span class="comment">// 中断处理程序入口地址的高 16 位</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">IDTR</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> limit; <span class="comment">// IDT 表界限（长度），单位为字节</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> base;  <span class="comment">// IDT 表基址（物理地址）</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(pop)</span></span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function">VOID <span class="title">Interrupt</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    __asm</span><br><span class="line">    &#123;</span><br><span class="line"></span><br><span class="line">        pushad; 保存通用寄存器</span><br><span class="line">        mov ax, <span class="number">0x30</span>; 修改 fs 寄存器，确保与当前特权级别和上下文兼容</span><br><span class="line">        mov fs, ax</span><br><span class="line">    &#125;</span><br><span class="line">        <span class="built_in">KdPrint</span>((<span class="string">&quot;中断调用成功!\n&quot;</span>));</span><br><span class="line">  </span><br><span class="line">    __asm</span><br><span class="line">    &#123;</span><br><span class="line">        popad; 恢复通用寄存器</span><br><span class="line">        iretd; 从中断返回</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">Register_InterruptGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">    KAFFINITY affinityMask;</span><br><span class="line">    ULONG numCPUs = <span class="built_in">KeQueryActiveProcessorCount</span>(<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (ULONG i = <span class="number">0</span>; i &lt; numCPUs; i++) &#123;</span><br><span class="line">        affinityMask = (KAFFINITY)(<span class="number">1ULL</span> &lt;&lt; i);</span><br><span class="line">        <span class="built_in">KeSetSystemAffinityThread</span>(affinityMask);</span><br><span class="line">        <span class="comment">//注册门</span></span><br><span class="line">        IDTR idtr;</span><br><span class="line">        __asm</span><br><span class="line">        &#123;</span><br><span class="line">            sidt idtr</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> Base = idtr.base;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        InterruptGateDescriptor* InterruptGateDescriptor_ptr = (InterruptGateDescriptor*)Base;</span><br><span class="line"></span><br><span class="line">        InterruptGateDescriptor_ptr[<span class="number">0x21</span>].present = <span class="number">1</span>;<span class="comment">//表示描述符有效</span></span><br><span class="line">        InterruptGateDescriptor_ptr[<span class="number">0x21</span>].dpl = <span class="number">3</span>; <span class="comment">//三环可以使用</span></span><br><span class="line">        InterruptGateDescriptor_ptr[<span class="number">0x21</span>].offset_high = (<span class="type">unsigned</span> <span class="type">int</span>)Interrupt &gt;&gt; <span class="number">16</span>;</span><br><span class="line">        InterruptGateDescriptor_ptr[<span class="number">0x21</span>].offset_low = (<span class="type">unsigned</span> <span class="type">int</span>)Interrupt &amp; <span class="number">0xffff</span>;</span><br><span class="line">        InterruptGateDescriptor_ptr[<span class="number">0x21</span>].reserved = <span class="number">0</span>;</span><br><span class="line">        InterruptGateDescriptor_ptr[<span class="number">0x21</span>].selector = <span class="number">8</span>;</span><br><span class="line">        InterruptGateDescriptor_ptr[<span class="number">0x21</span>].type = <span class="number">0xE</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 恢复线程的原始 CPU 亲和性</span></span><br><span class="line">    <span class="built_in">KeRevertToUserAffinityThread</span>();</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS <span class="title">DriverEntry</span><span class="params">(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">UNREFERENCED_PARAMETER</span>(RegistryPath);</span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;Create!&quot;</span>));</span><br><span class="line">    <span class="built_in">KdBreakPoint</span>();</span><br><span class="line">    <span class="comment">// 驱动程序卸载例程&amp;注册例程</span></span><br><span class="line">    DriverObject-&gt;DriverUnload = DriverUnloadRoutine;</span><br><span class="line">    <span class="comment">//创建设备</span></span><br><span class="line">    NTSTATUS status;</span><br><span class="line">    PDEVICE_OBJECT DeviceObject = <span class="literal">NULL</span>;</span><br><span class="line">    UNICODE_STRING DeviceName;</span><br><span class="line">    <span class="built_in">RtlInitUnicodeString</span>(&amp;DeviceName, <span class="string">L&quot;\\Device\\MyDevice&quot;</span>);</span><br><span class="line">    status = <span class="built_in">IoCreateDevice</span>(</span><br><span class="line">        DriverObject,                <span class="comment">// 驱动程序对象</span></span><br><span class="line">        <span class="number">0</span>,                           <span class="comment">// 设备扩展大小</span></span><br><span class="line">        &amp;DeviceName,                 <span class="comment">// 设备名称</span></span><br><span class="line">        FILE_DEVICE_UNKNOWN,         <span class="comment">// 设备类型</span></span><br><span class="line">        <span class="number">0</span>,                           <span class="comment">// 设备特征</span></span><br><span class="line">        FALSE,                       <span class="comment">// 非独占设备</span></span><br><span class="line">        &amp;DeviceObject                <span class="comment">// 返回的设备对象指针</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">NT_SUCCESS</span>(status))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">KdPrint</span>((<span class="string">&quot;Failed to create device: %X\n&quot;</span>, status));</span><br><span class="line">        <span class="keyword">return</span> status;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;Device created successfully\n&quot;</span>));</span><br><span class="line"></span><br><span class="line">    UNICODE_STRING symbolicLink = <span class="built_in">RTL_CONSTANT_STRING</span>(<span class="string">L&quot;\\??\\MyDevice_Link&quot;</span>);</span><br><span class="line">    status = <span class="built_in">IoCreateSymbolicLink</span>(&amp;symbolicLink, &amp;DeviceName);</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">NT_SUCCESS</span>(status))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">KdPrint</span>((<span class="string">&quot;Failed to create device: %X\n&quot;</span>, status));</span><br><span class="line">        <span class="keyword">return</span> status;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">KdPrint</span>((<span class="string">&quot;Device created successfully\n&quot;</span>));</span><br><span class="line">    <span class="built_in">Register_InterruptGate</span>();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">VOID <span class="title">DriverUnloadRoutine</span><span class="params">(IN PDRIVER_OBJECT DriverObject)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (DriverObject-&gt;DeviceObject != <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        UNICODE_STRING symbolicLink = <span class="built_in">RTL_CONSTANT_STRING</span>(<span class="string">L&quot;\\??\\MyDevice_Link&quot;</span>);</span><br><span class="line">        <span class="built_in">IoDeleteSymbolicLink</span>(&amp;symbolicLink);</span><br><span class="line">        <span class="built_in">IoDeleteDevice</span>(DriverObject-&gt;DeviceObject);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//UnHookInterruptOnAllCPUs();</span></span><br><span class="line">    <span class="built_in">DbgPrint</span>(<span class="string">&quot;Driver unloaded\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>三环代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	__asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="type">int</span> <span class="number">0x21</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/Windows%E5%86%85%E6%A0%B813(TSS%E4%BB%BB%E5%8A%A1%E6%AE%B5%E5%92%8C%E4%B8%AD%E6%96%AD%E9%97%A8%E5%88%9D%E6%8E%A2)/">http://example.com/Windows%E5%86%85%E6%A0%B813(TSS%E4%BB%BB%E5%8A%A1%E6%AE%B5%E5%92%8C%E4%B8%AD%E6%96%AD%E9%97%A8%E5%88%9D%E6%8E%A2)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Windows%E5%86%85%E6%A0%B8/">Windows内核</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/%E6%89%BE%E5%9F%BA%E5%9C%B0%E5%9D%80/" title="Cs1.6找基地址"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Cs1.6找基地址</div></div></a></div><div class="next-post pull-right"><a href="/Windows%E5%86%85%E6%A0%B812(%E4%BF%AE%E6%94%B9%E5%AF%B9%E6%96%B9%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98)/" title="Windows内核（12）——通过CR3修改进程内存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Windows内核（12）——通过CR3修改进程内存</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/Windows%E5%86%85%E6%A0%B81(%E5%86%85%E6%A0%B8%E5%88%9D%E6%8E%A2&%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F)/" title="Windows内核（1）——内核初探&amp;编写第一个驱动程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-10</div><div class="title">Windows内核（1）——内核初探&amp;编写第一个驱动程序</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B810(10-10-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（10）——分页机制（10-10-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-27</div><div class="title">Windows内核（10）——分页机制（10-10-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（11）——分页机制（2-9-9-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-30</div><div class="title">Windows内核（11）——分页机制（2-9-9-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B812(%E4%BF%AE%E6%94%B9%E5%AF%B9%E6%96%B9%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98)/" title="Windows内核（12）——通过CR3修改进程内存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-03</div><div class="title">Windows内核（12）——通过CR3修改进程内存</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B814(%E8%A1%A5%E7%AC%94%E8%AE%B0)/" title="Windows内核（14）——补笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-17</div><div class="title">Windows内核（14）——补笔记</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/" title="Windows内核（15）——键盘Hook，调用门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-20</div><div class="title">Windows内核（15）——键盘Hook，调用门</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windows"><span class="toc-number">1.</span> <span class="toc-text">Windows</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">参考文章：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GDT%E5%92%8CIDT"><span class="toc-number">1.2.</span> <span class="toc-text">GDT和IDT</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E6%AE%B5%E7%9A%84%E7%AE%80%E7%95%A5%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.3.</span> <span class="toc-text">系统段的简略介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TSS%E4%BB%BB%E5%8A%A1%E7%8A%B6%E6%80%81%E6%AE%B5"><span class="toc-number">1.4.</span> <span class="toc-text">TSS任务状态段</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD"><span class="toc-number">1.5.</span> <span class="toc-text">中断</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%AD%E6%96%AD"><span class="toc-number">1.5.1.</span> <span class="toc-text">什么是中断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E9%97%A8%EF%BC%9A"><span class="toc-number">1.5.2.</span> <span class="toc-text">中断门：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90%E4%B8%AD%E6%96%AD%E9%97%A8%EF%BC%9A"><span class="toc-number">1.5.3.</span> <span class="toc-text">解析中断门：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E9%97%A8%E7%9A%84Call%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">1.5.4.</span> <span class="toc-text">中断门的Call调用流程流程图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1%E9%97%A8%E5%92%8C%E4%BB%BB%E5%8A%A1%E7%8A%B6%E6%80%81%E6%AE%B5%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">1.6.</span> <span class="toc-text">任务门和任务状态段的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E7%A7%8DHook%E6%8A%80%E6%9C%AF"><span class="toc-number">1.7.</span> <span class="toc-text">三种Hook技术</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B1%8F%E8%94%BD%E4%B8%AD%E6%96%AD"><span class="toc-number">1.8.</span> <span class="toc-text">屏蔽中断</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%8F%E8%94%BDINT-3%E4%B8%AD%E6%96%AD"><span class="toc-number">1.8.1.</span> <span class="toc-text">屏蔽INT 3中断</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

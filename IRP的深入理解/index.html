@@ -1,0 +1,269 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>IRP的深入理解(持续更新) | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="IRP的深入理解参考文章： IRP IO_STACK_LOCATION 《寒江独钓》内核学习笔记（1） - 郑瀚 - 博客园  IRP是什么从概念上讲IRP类似于windows应用程序的消息。我们知道在windows中应用程序是由消息驱动的。 IRP的全名是I&#x2F;O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IRP的深入理解(持续更新)">
+<meta property="og:url" content="http://example.com/IRP%E7%9A%84%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="IRP的深入理解参考文章： IRP IO_STACK_LOCATION 《寒江独钓》内核学习笔记（1） - 郑瀚 - 博客园  IRP是什么从概念上讲IRP类似于windows应用程序的消息。我们知道在windows中应用程序是由消息驱动的。 IRP的全名是I&#x2F;O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-11-01T03:10:00.000Z">
+<meta property="article:modified_time" content="2025-01-23T08:38:59.546Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Windows内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/IRP%E7%9A%84%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'IRP的深入理解(持续更新)',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-01-23 16:38:59'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">IRP的深入理解(持续更新)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-11-01T03:10:00.000Z" title="发表于 2024-11-01 11:10:00">2024-11-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-23T08:38:59.546Z" title="更新于 2025-01-23 16:38:59">2025-01-23</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="IRP的深入理解(持续更新)"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="IRP的深入理解"><a href="#IRP的深入理解" class="headerlink" title="IRP的深入理解"></a>IRP的深入理解</h1><p>参考文章： <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LittleHann/p/3450436.html">IRP IO_STACK_LOCATION 《寒江独钓》内核学习笔记（1） - 郑瀚 - 博客园</a> </p>
+<h2 id="IRP是什么"><a href="#IRP是什么" class="headerlink" title="IRP是什么"></a>IRP是什么</h2><p>从概念上讲IRP类似于windows应用程序的消息。我们知道在windows中应用程序是由消息驱动的。</p>
+<p>IRP的全名是I&#x2F;O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程序通信时，应用程序会发出I&#x2F;O请求，<strong>操作系统将相应的I&#x2F;O请求转换成相应的IRP</strong>，不同的IRP会根据类型被分派到不同的派遣例程中进行处理。</p>
+<h2 id="IRQL等级"><a href="#IRQL等级" class="headerlink" title="IRQL等级"></a>IRQL等级</h2><p>在写驱动（软件）我们能接触到的的IRQL等级只有三种</p>
+<p>1.无中断：<code>PASSIVE_LEVEL(0)</code>：</p>
+<p>在此级别，所有中断都可以被处理，没有任何屏蔽。线程可以被调度和抢占，因此用户模式代码大部分时间都运行在这个级别。在此级别下可以执行各种内核 API 和用户模式操作，比如文件 I&#x2F;O、内存分配、访问分页内存、使用等待和同步对象等。</p>
+<p>DriverEntry、 AddDevice、 Reinitialize 和 Unload 例程也PASSIVE_LEVEL运行，驱动程序创建的任何系统线程也是如此。 </p>
+<p>2.软中断：</p>
+<p><code>APC_LEVEL(1)</code>   </p>
+<p>与<code>PASSIVE_LEVEL(0)</code>的唯一区别：  APC_LEVEL与PASSIVE_LEVEL的唯一区别是，在APC_LEVEL执行的进程无法获得 APC 中断。 但两个 IRQL 都表示线程上下文，两者都意味着代码可以分页。 </p>
+<p><code>DISPATCH_LEVEL(2)</code>	</p>
+<p><code>DISPATCH_LEVEL</code> 用于调度时钟中断、调度线程执行、DPC（延迟过程调用）等的 IRQL 级别。代码会屏蔽 APC 和其他低级别的中断，但不会屏蔽更高级别的硬件中断。 不能进行等待操作，也不能访问分页内存。 适合时间敏感的短期操作，以避免线程调度或上下文切换。   		</p>
+<p><strong>典型应用</strong>：常用于 DPC（Delayed Procedure Call） 和调度器的代码执行，例如驱动程序处理 I&#x2F;O 完成时的一些清理和后续处理会通过 DPC 在 <code>DISPATCH_LEVEL</code> 上执行 </p>
+<table>
+<thead>
+<tr>
+<th>调用源</th>
+<th>一般的运行中断级别</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DriverEntry,DriverUnload</td>
+<td>Passive</td>
+</tr>
+<tr>
+<td>各种IRP分发函数</td>
+<td>Passive</td>
+</tr>
+<tr>
+<td>完成函数</td>
+<td>Dispatch</td>
+</tr>
+<tr>
+<td>各种NDIS回调函数</td>
+<td>Dispatch</td>
+</tr>
+</tbody></table>
+<p>另外<code>RtlCopyUnicodeString</code>虽然说是any level，但是它的Destination和SourceString必须是常驻内存，否则蓝屏。</p>
+<p>还有一个场景：</p>
+<p>在写键盘过滤驱动的时候，如果我们要拿键盘扫描码，但是因为在完成例程函数是运行在<code>Dispatch level</code>上，我们无法直接在完成例程函数直接把扫描码写入到一个内存（分页内存）,那么解决方法可以是：</p>
+<p>1.写入非分页内存 </p>
+<p>在 <code>DISPATCH_LEVEL</code> 上不能访问分页内存，因为这种内存可能会被换出到磁盘，导致访问超时或系统崩溃。写入非分页内存可以解决这个问题，因为非分页内存始终驻留在物理内存中。 1.写入非分页内存，2.开一个工作线程，3.return STATUS_MORE_PROCESSING_REQUIRED ,在IRP分发函数处理</p>
+<p>2.开一个工作线程 </p>
+<p>工作线程运行在 <code>PASSIVE_LEVEL</code>，因此可以安全地访问分页内存。在完成例程中，可以将扫描码存储在临时的非分页缓冲区，然后在工作线程中处理，或将其复制到分页内存中。 </p>
+<p>示例代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ntddk.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_WORK_ITEM_CONTEXT</span> &#123;</span><br><span class="line">    PVOID DataBuffer;    <span class="comment">// 用于传递数据的分页内存指针</span></span><br><span class="line">    ULONG DataSize;</span><br><span class="line">&#125; WORK_ITEM_CONTEXT, *PWORK_ITEM_CONTEXT;</span><br><span class="line"></span><br><span class="line"><span class="function">VOID</span></span><br><span class="line"><span class="function"><span class="title">WorkerThreadRoutine</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ PVOID Context</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PWORK_ITEM_CONTEXT workItemContext = (PWORK_ITEM_CONTEXT)Context;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 在 PASSIVE_LEVEL 运行的工作线程中，可以安全地访问分页内存</span></span><br><span class="line">    <span class="keyword">if</span> (workItemContext &amp;&amp; workItemContext-&gt;DataBuffer) &#123;</span><br><span class="line">        <span class="comment">// 处理扫描码或其他数据</span></span><br><span class="line">        <span class="built_in">DbgPrint</span>(<span class="string">&quot;Processing data in worker thread...\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 假设我们只是简单打印出数据</span></span><br><span class="line">        <span class="keyword">for</span> (ULONG i = <span class="number">0</span>; i &lt; workItemContext-&gt;DataSize; i++) &#123;</span><br><span class="line">            <span class="built_in">DbgPrint</span>(<span class="string">&quot;Data[%lu]: %x\n&quot;</span>, i, ((PUCHAR)workItemContext-&gt;DataBuffer)[i]);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 完成后释放内存</span></span><br><span class="line">        <span class="built_in">ExFreePool</span>(workItemContext-&gt;DataBuffer);</span><br><span class="line">        <span class="built_in">ExFreePool</span>(workItemContext);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">PsTerminateSystemThread</span>(STATUS_SUCCESS); <span class="comment">// 终止工作线程</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS</span></span><br><span class="line"><span class="function"><span class="title">MyCompletionRoutine</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ PDEVICE_OBJECT DeviceObject,</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ PIRP Irp,</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_opt_ PVOID Context</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 分配一个工作项上下文</span></span><br><span class="line">    PWORK_ITEM_CONTEXT workItemContext = (PWORK_ITEM_CONTEXT)<span class="built_in">ExAllocatePool</span>(NonPagedPool, <span class="built_in">sizeof</span>(WORK_ITEM_CONTEXT));</span><br><span class="line">    <span class="keyword">if</span> (!workItemContext) &#123;</span><br><span class="line">        <span class="keyword">return</span> STATUS_INSUFFICIENT_RESOURCES;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将数据复制到非分页内存以供工作线程访问</span></span><br><span class="line">    workItemContext-&gt;DataSize = <span class="number">10</span>;  <span class="comment">// 假设数据大小为10</span></span><br><span class="line">    workItemContext-&gt;DataBuffer = <span class="built_in">ExAllocatePool</span>(PagedPool, workItemContext-&gt;DataSize);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!workItemContext-&gt;DataBuffer) &#123;</span><br><span class="line">        <span class="built_in">ExFreePool</span>(workItemContext);</span><br><span class="line">        <span class="keyword">return</span> STATUS_INSUFFICIENT_RESOURCES;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 假设在此处将扫描码数据复制到分页内存中</span></span><br><span class="line">    <span class="built_in">RtlCopyMemory</span>(workItemContext-&gt;DataBuffer, Irp-&gt;AssociatedIrp.SystemBuffer, workItemContext-&gt;DataSize);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建工作线程</span></span><br><span class="line">    HANDLE threadHandle;</span><br><span class="line">    NTSTATUS status = <span class="built_in">PsCreateSystemThread</span>(&amp;threadHandle, THREAD_ALL_ACCESS, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, WorkerThreadRoutine, workItemContext);</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">NT_SUCCESS</span>(status)) &#123;</span><br><span class="line">        <span class="built_in">ExFreePool</span>(workItemContext-&gt;DataBuffer);</span><br><span class="line">        <span class="built_in">ExFreePool</span>(workItemContext);</span><br><span class="line">        <span class="keyword">return</span> status;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 关闭线程句柄，线程会自行清理</span></span><br><span class="line">    <span class="built_in">ZwClose</span>(threadHandle);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 返回 STATUS_MORE_PROCESSING_REQUIRED 来避免 IRP 被系统自动完成</span></span><br><span class="line">    <span class="keyword">return</span> STATUS_MORE_PROCESSING_REQUIRED;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>返回 <code>STATUS_MORE_PROCESSING_REQUIRED</code>，在 IRP 分发函数中处理 </p>
+<p><code>STATUS_MORE_PROCESSING_REQUIRED</code> 会使完成例程不继续完成 IRP，控制权返回给分发函数。可以在分发函数中完成对扫描码的处理，然后手动完成 IRP。 </p>
+<h2 id="PENING的情况"><a href="#PENING的情况" class="headerlink" title="PENING的情况"></a>PENING的情况</h2><p>参考文章 <a target="_blank" rel="noopener" href="https://blog.csdn.net/wzsy/article/details/62046135">总结：使用IoMarkPending的原因及原理_iomarkirppending-CSDN博客</a> </p>
+<p>当驱动程序返回 <code>STATUS_PENDING</code> 时，系统做的不仅仅是设置一个标志，它还会改变 IRP 的处理流程。 更确切地说，系统会<strong>暂停</strong>对该 IRP 的处理，并将其置于一个等待完成的状态。在驱动程序返回<code>STATUS_PENDING</code>之前，一般我们会去单独起一个线程，或者DCP例程去异步的完成IRP（直到调用IoCompleteRequest）</p>
+<p>再细究一下说一下<code>IoMarkPending</code>什么时候用</p>
+<p>根据微软的官方文档，它的作用是这样的：<br><strong>IoMarkIrpPending</strong> 例程标记指定的 IRP，指示驱动程序的调度例程随后返回STATUS_PENDING，因为其他驱动程序例程需要进一步处理。 </p>
+<p>除非驱动程序的调度例程通过调用 （IoCompleteRequest) 完成 IRP(或将 IRP 传递给较低的驱动程序，否则它必须使用 <strong>IRP 调用 IoMarkIrpPending</strong> 。 否则，一旦调度例程返回控制权，I&#x2F;O 管理器就会尝试完成 IRP。 </p>
+<p>注意注意，调用完IoMarkIrpPending，驱动程序一定要返回<code>STATUS_PENDING</code> 即使某些例程通过在调用 <strong>IoMarkIrpPending</strong> 的调度例程返回之前调用 IoCompleteRequest完成 IRP </p>
+<p>如果没有调用<code>IoMarkIrpPending</code>，而只返回<code>STATUS_PENDING</code>， IRP 可能会取消排队，由另一个驱动程序例程完成，并在调用 IoMarkIrpPending 之前由系统释放，从而导致崩溃。 </p>
+<p>调用<code>IoMarkPending</code>的作用是设置当前堆栈的<code>SL_PENDING_RETURNED</code>标志 ,这往往在最底层的驱动被设置，当此IRP被完成之后（IoCompleteRequest）,就会启动完成例程函数。</p>
+<p>我们经常在完成例程函数里面看到这段代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (Irp-&gt;PendingReturned)</span><br><span class="line">      <span class="built_in">IoMarkIrpPending</span>(Irp);</span><br></pre></td></tr></table></figure>
+
+<p>这是为了设置当前堆栈的<code>SL_PENDING_RETURNED</code>标志位，那不禁让人有了疑问，这玩意不是已经在IRP处理例程设置过了吗？在完成例程函数为什么也要设置嘞？？</p>
+<p>这是查阅到的资料</p>
+<blockquote>
+<p>某个能处理IRP的派遣例程返回STATUS_PENDING前会首先调用IoMarkIrpPending函数在当前的堆栈单元中设置一个名为SL_PENDING_RETURNED的标志；当被推迟的操作在将来某个时候结束时，该派遣例程中的IoCompleteRequest函数会检查到SL_PENDING_RETURNED被设置，同时它会检查上层驱动是否安装了完成例程，若未设置，则它会把当前堆栈单元的SL_PENDING_RETURNED标志复制到上一层堆栈单元中，若设置了，则在调用完成例程前它不会把当前堆栈单元的SL_PENDING_RETURNED标志复制到上一层堆栈单元中，而仅仅在IRP中设置PendingReturned标志为SL_PENDING_RETURNED标志（Windows NT就是这么设计的…），因此上层驱动的完成例程就有义务在自己的堆栈单元中设置SL_PENDING_RETURNED标志。</p>
+<p>过程是从堆栈下层开始逐步向上层执行的，随着<em>SL_PENDING_RETURNED</em>逐步向上层堆栈传递，最终最顶层堆栈单元中的<em>SL_PENDING_RETURNED</em>标志会被设置，从而可以保证<em>IoCompleteRequest</em>函数会调度<em>APC</em>来使<em>IRP</em>发起者等待的事件变为通知状态。 </p>
+<p> 调度APC的作用：该APC会做很多清理工作，比如调用IoFreeIrp释放IRP、调用KeSetEvent使IRP发起者等待的事件为通知状态等等。 </p>
+</blockquote>
+<p>所以我的理解是，需要释放掉每一层的IRP堆栈，因为如果是挂起状态（返回STATUS_PENDING）,IO设备管理器不会自动释放，除非检测到又被设置过<code>SL_PENDING_RETURNED</code>标志位，所以我们要确保<code>SL_PENDING_RETURNED</code>这个标志位能层层上传</p>
+<h2 id="关于完成例程函数"><a href="#关于完成例程函数" class="headerlink" title="关于完成例程函数"></a>关于完成例程函数</h2><p>参考文章： <a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41490873/article/details/107704403">完成例程-CSDN博客</a> </p>
+<h3 id="触发条件"><a href="#触发条件" class="headerlink" title="触发条件"></a>触发条件</h3><p>只有当前IRP请求被调用了<code>IoCompleteRequest</code>，完成例程函数才会被触发，和驱动的返回值没有关系（管它返回<code>STATUS_SUCCESS</code>还是什么东东）</p>
+<h3 id="STATUS-MORE-PROCESSING-REQUIRED"><a href="#STATUS-MORE-PROCESSING-REQUIRED" class="headerlink" title="STATUS_MORE_PROCESSING_REQUIRED"></a>STATUS_MORE_PROCESSING_REQUIRED</h3><p>当IRP被IoCompleteRequest完成时，IRP就会沿着一-层层的设 备堆栈向上回卷。如果途经遇到某设备堆栈的完成例程，则进入该完成例程。完成例程如果返回STATUS_MORE PROCESSING_ REQUIRED,则停止向上回卷。这时的本层堆栈又重新获得IRP的控制，并且该IRP 从完成状态又变成了未完成状态，需要再次完成，即需要再次执行IoCompleteRequest。</p>
+<p>以下给出了使用完成例程的例子，该完成例程返回STATUS_MORE_PROCESSING_REQUIRED。在调用loCallDriver 之后，当前设备想等待底层驱动将设备完成后再继续执行。因此，loCallDriver 初始化了个事件，并将事件指针传递给了完成例程。IRP 被完成后进入完成例程，并触发事件。这种技巧被广泛应用于驱动程序的编写中，代码如下:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTSTATUS</span></span><br><span class="line"><span class="function">  <span class="title">MyIoCompletion</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    IN PDEVICE_OBJECT  DeviceObject,</span></span></span><br><span class="line"><span class="params"><span class="function">    IN PIRP  Irp,</span></span></span><br><span class="line"><span class="params"><span class="function">    IN PVOID  Context</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (Irp-&gt;PendingReturned == TRUE) </span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//设置事件</span></span><br><span class="line">		<span class="built_in">KeSetEvent</span>((PKEVENT)Context,IO_NO_INCREMENT,FALSE);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> STATUS_MORE_PROCESSING_REQUIRED;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> PAGEDCODE</span></span><br><span class="line"><span class="function">NTSTATUS <span class="title">HelloDDKRead</span><span class="params">(IN PDEVICE_OBJECT pDevObj,</span></span></span><br><span class="line"><span class="params"><span class="function">								 IN PIRP pIrp)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">KdPrint</span>((<span class="string">&quot;DriverB:Enter B HelloDDKRead\n&quot;</span>));</span><br><span class="line">	NTSTATUS ntStatus = STATUS_SUCCESS;</span><br><span class="line">	<span class="comment">//将自己完成IRP，改成由底层驱动负责</span></span><br><span class="line"></span><br><span class="line">	PDEVICE_EXTENSION pdx = (PDEVICE_EXTENSION)pDevObj-&gt;DeviceExtension;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//本层堆栈也可能会有一个完成函数,如果直接使用本层堆栈的话,设置完成函数的时候回覆盖掉.所以都是先把堆栈复制到下一层,然后设置完成函数到下一层堆栈中</span></span><br><span class="line">	<span class="built_in">IoCopyCurrentIrpStackLocationToNext</span>(pIrp);</span><br><span class="line"></span><br><span class="line">	KEVENT event;</span><br><span class="line">	<span class="comment">//初始化事件</span></span><br><span class="line">	<span class="built_in">KeInitializeEvent</span>(&amp;event, NotificationEvent, FALSE);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//设置完成例程  最后三个参数指明了 在 成功  发生错误 或者取消的情况下都会调用完成例程.</span></span><br><span class="line">	<span class="built_in">IoSetCompletionRoutine</span>(pIrp,MyIoCompletion,&amp;event,TRUE,TRUE,TRUE);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//调用底层驱动</span></span><br><span class="line">    ntStatus = <span class="built_in">IoCallDriver</span>(pdx-&gt;TargetDevice, pIrp);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (ntStatus == STATUS_PENDING)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">KdPrint</span>((<span class="string">&quot;IoCallDriver return STATUS_PENDING,Waiting ...\n&quot;</span>));</span><br><span class="line">		<span class="built_in">KeWaitForSingleObject</span>(&amp;event,Executive,KernelMode ,FALSE,<span class="literal">NULL</span>);</span><br><span class="line">		ntStatus = pIrp-&gt;IoStatus.Status;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//虽然在底层驱动已经将IRP完成了，但是由于完成例程返回的是</span></span><br><span class="line">	<span class="comment">//STATUS_MORE_PROCESSING_REQUIRED,因此需要再次调用IoCompleteRequest!</span></span><br><span class="line">	<span class="built_in">IoCompleteRequest</span> (pIrp, IO_NO_INCREMENT);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">KdPrint</span>((<span class="string">&quot;DriverB:Leave B HelloDDKRead\n&quot;</span>));</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> ntStatus;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+<h2 id="关于IRP堆栈"><a href="#关于IRP堆栈" class="headerlink" title="关于IRP堆栈"></a>关于IRP堆栈</h2><p>参考文章</p>
+<p> <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LittleHann/p/3450436.html">IRP IO_STACK_LOCATION 《寒江独钓》内核学习笔记（1） - 郑瀚 - 博客园</a> </p>
+<p>从数据结构的角度上来说，其实数据结构 IRP 只是”I&#x2F;O 请求包”IRP的头部，在 IRP 数据结构的后面还有一个IO_STACK_LOCATION 数据结构的数组，数组的大小则取决于 IRP 数据结构中的StackCount(我们之后会详细分析)，其数值来自设备堆栈中顶层设备对象的 StackSize 字段。</p>
+<p>这样，就在 IRP 中为目标设备对象设备堆栈中的每一层即每个模块(每个驱动)都准备好了一个 IO_STACK_LOCATION 数据结构。而CurrentLocation，则是用于该数组的下标，说明目前是在堆叠中的哪一层，因而正在使用哪一个 IO_STACK_LOCATION 数据结构。</p>
+<p>这里介绍两个函数</p>
+<p><code>IoSkipCurrentIrpStackLocation</code>和<code>IoCopyCurrentIrpStackLocationToNext</code></p>
+<p>他们的实现分别是这样的：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> IoSkipCurrentIrpStackLocation( Irp ) \</span></span><br><span class="line"><span class="meta">    (Irp)-&gt;CurrentLocation++; \</span></span><br><span class="line"><span class="meta">    (Irp)-&gt;Tail.Overlay.CurrentStackLocation++;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">FORCEINLINE</span></span><br><span class="line"><span class="function">VOID</span></span><br><span class="line"><span class="function"><span class="title">IoCopyCurrentIrpStackLocationToNext</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    _Inout_ PIRP Irp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PIO_STACK_LOCATION irpSp;</span><br><span class="line">    PIO_STACK_LOCATION nextIrpSp;</span><br><span class="line">    irpSp = <span class="built_in">IoGetCurrentIrpStackLocation</span>(Irp);</span><br><span class="line">    nextIrpSp = <span class="built_in">IoGetNextIrpStackLocation</span>(Irp);</span><br><span class="line">    <span class="built_in">RtlCopyMemory</span>(nextIrpSp, irpSp, <span class="built_in">FIELD_OFFSET</span>(IO_STACK_LOCATION, CompletionRoutine));</span><br><span class="line">    nextIrpSp-&gt;Control = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>微软官方说</p>
+<p> <strong>IoSkipCurrentIrpStackLocation</strong> 宏修改系统的 <a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/windows-hardware/drivers/ddi/wdm/ns-wdm-_io_stack_location"><strong>IO_STACK_LOCATION</strong></a> 数组指针，以便在当前驱动程序调用下一个较低级别的驱动程序时，该驱动程序接收与当前驱动程序收到的<strong>相同IO_STACK_LOCATION</strong>结构。 </p>
+<p>那么为什么会让下一层驱动收到的栈是和当前一样的呢？</p>
+<p>看IoCallDriver代码我们就可以知道</p>
+<p><strong><code>CurrentLocation</code></strong> 是一个数字，告诉驱动 IRP 当前堆栈的位置。</p>
+<p><strong><code>Tail.Overlay.CurrentStackLocation</code></strong> 是一个指针，用于操作当前堆栈位置的具体数据。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTSTATUS FASTCALL <span class="title">IofCallDriver</span>	<span class="params">(IN PDEVICE_OBJECT 	DeviceObject,IN PIRP Irp)</span>	</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PDRIVER_OBJECT DriverObject;</span><br><span class="line">    PIO_STACK_LOCATION StackPtr;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/* Make sure this is a valid IRP */</span></span><br><span class="line">    <span class="built_in">ASSERT</span>(Irp-&gt;Type == IO_TYPE_IRP);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/* Get the Driver Object */</span></span><br><span class="line">    DriverObject = DeviceObject-&gt;DriverObject;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/* Decrease the current location and check if */</span></span><br><span class="line">    Irp-&gt;CurrentLocation--;</span><br><span class="line">    <span class="keyword">if</span> (Irp-&gt;CurrentLocation &lt;= <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* This IRP ran out of stack, bugcheck */</span></span><br><span class="line">        <span class="built_in">KeBugCheckEx</span>(NO_MORE_IRP_STACK_LOCATIONS, (ULONG_PTR)Irp, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/* Now update the stack location */</span></span><br><span class="line">    StackPtr = <span class="built_in">IoGetNextIrpStackLocation</span>(Irp);</span><br><span class="line">    Irp-&gt;Tail.Overlay.CurrentStackLocation = StackPtr;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/* Get the Device Object */</span></span><br><span class="line">    StackPtr-&gt;DeviceObject = DeviceObject;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/* Call it */</span></span><br><span class="line">    <span class="keyword">return</span> DriverObject-&gt;MajorFunction[StackPtr-&gt;MajorFunction](DeviceObject,</span><br><span class="line">                                                                Irp);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">IoGetNextIrpStackLocation</span>()</span><br><span class="line"><span class="function">__drv_aliasesMem FORCEINLINE PIO_STACK_LOCATION <span class="title">IoGetNextIrpStackLocation</span>	<span class="params">(	_In_ PIRP 	Irp	)</span>	</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">ASSERT</span>(Irp-&gt;CurrentLocation &gt; <span class="number">0</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> NONAMELESSUNION</span></span><br><span class="line">  <span class="keyword">return</span> ((Irp)-&gt;Tail.Overlay.s.u.CurrentStackLocation - <span class="number">1</span> );</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">  <span class="keyword">return</span> ((Irp)-&gt;Tail.Overlay.CurrentStackLocation - <span class="number">1</span> );</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>发现之所以会让下一层驱动收到的栈是和当前一样是因为，<code>IoSkipCurrentIrpStackLocation</code>让<code>(Irp)-&gt;CurrentLocation++; </code> <code>(Irp)-&gt;Tail.Overlay.CurrentStackLocation++;</code>,抵消掉了IoCallDriver的<code>IoSkipCurrentIrpStackLocation</code>让<code>(Irp)-&gt;CurrentLocation--; </code> <code>(Irp)-&gt;Tail.Overlay.CurrentStackLocation--;</code>，相当于堆栈结构没有变化</p>
+<p>接下来是<code>IoCopyCurrentIrpStackLocationToNext</code>，为什么说设置完成例程函数都要调用<code>IoCopyCurrentIrpStackLocationToNext</code>，尽管我们没有修改堆栈，为何不调用<code>IoSkipCurrentIrpStackLocation</code>呢？</p>
+<p>当一个驱动设置完成例程时，完成例程的函数指针会被写入当前堆栈位置的 <code>CompletionRoutine</code> 字段。 </p>
+<p>如果用Skip共享同一个堆栈，可能就会导致原来的完成例程函数被覆盖</p>
+<p><strong>问题：可是假如有五层堆栈，由于Skip了一些，导致只用了例如三个堆栈，也就是当最后一个设备处理完的时候，栈location指向第三个堆栈，那栈回溯的时候，不够五个啊，这个咋回事</strong> </p>
+<p>答：不影响啊，不是按照设备来回溯的，是通过当前栈回溯的， 每次回溯只检查当前堆栈位置是否设置了 <code>CompletionRoutine</code>。  如果设置了，就调用完成例程；如果没设置，直接跳过。 </p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/IRP%E7%9A%84%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/">http://example.com/IRP%E7%9A%84%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Windows%E5%86%85%E6%A0%B8/">Windows内核</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/%E5%AD%97%E7%AC%A6%E4%B8%B2%20%E6%96%87%E4%BB%B6%20%E6%B3%A8%E5%86%8C%E8%A1%A8/" title="内核字符串,文件,注册表操作"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">内核字符串,文件,注册表操作</div></div></a></div><div class="next-post pull-right"><a href="/Sfilter/" title="Sfilter的实现原理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Sfilter的实现原理</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/Windows%E5%86%85%E6%A0%B81(%E5%86%85%E6%A0%B8%E5%88%9D%E6%8E%A2&%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F)/" title="Windows内核（1）——内核初探&amp;编写第一个驱动程序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-10</div><div class="title">Windows内核（1）——内核初探&amp;编写第一个驱动程序</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B810(10-10-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（10）——分页机制（10-10-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-27</div><div class="title">Windows内核（10）——分页机制（10-10-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B811(2-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/" title="Windows内核（11）——分页机制（2-9-9-12）"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-07-30</div><div class="title">Windows内核（11）——分页机制（2-9-9-12）</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B812(%E4%BF%AE%E6%94%B9%E5%AF%B9%E6%96%B9%E8%BF%9B%E7%A8%8B%E5%86%85%E5%AD%98)/" title="Windows内核（12）——通过CR3修改进程内存"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-03</div><div class="title">Windows内核（12）——通过CR3修改进程内存</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B814(%E8%A1%A5%E7%AC%94%E8%AE%B0)/" title="Windows内核（14）——补笔记"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-17</div><div class="title">Windows内核（14）——补笔记</div></div></a></div><div><a href="/Windows%E5%86%85%E6%A0%B815(%E9%94%AE%E7%9B%98Hook%EF%BC%8C%E8%B0%83%E7%94%A8%E9%97%A8)/" title="Windows内核（15）——键盘Hook，调用门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-08-20</div><div class="title">Windows内核（15）——键盘Hook，调用门</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IRP%E7%9A%84%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">IRP的深入理解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#IRP%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.1.</span> <span class="toc-text">IRP是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IRQL%E7%AD%89%E7%BA%A7"><span class="toc-number">1.2.</span> <span class="toc-text">IRQL等级</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PENING%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-number">1.3.</span> <span class="toc-text">PENING的情况</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E%E5%AE%8C%E6%88%90%E4%BE%8B%E7%A8%8B%E5%87%BD%E6%95%B0"><span class="toc-number">1.4.</span> <span class="toc-text">关于完成例程函数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.4.1.</span> <span class="toc-text">触发条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#STATUS-MORE-PROCESSING-REQUIRED"><span class="toc-number">1.4.2.</span> <span class="toc-text">STATUS_MORE_PROCESSING_REQUIRED</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E4%BA%8EIRP%E5%A0%86%E6%A0%88"><span class="toc-number">1.5.</span> <span class="toc-text">关于IRP堆栈</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>

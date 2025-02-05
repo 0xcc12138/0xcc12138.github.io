@@ -1,0 +1,300 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Windows x64内核(3)——分页机制 | Cc12138's blog</title><meta name="author" content="Ccai"><meta name="copyright" content="Ccai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Windows x64内核9-9-9-9-12分页机制介绍之前我们学过的x86用的是2-9-9-12和10-10-12的分页机制 x64下，分页大小有4K，2M，1G的大小 如果PDE的PS位为0，则为4K，为1则为2M  如果PDPTE 的PS&#x3D;1的话，指向 1GB 页  x64下，4k分页变成了9-9-9-9-12的分页机制 虽然64位下的地址有64位，但是实际用到的只有48位，这主">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows x64内核(3)——分页机制">
+<meta property="og:url" content="http://example.com/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/index.html">
+<meta property="og:site_name" content="Cc12138&#39;s blog">
+<meta property="og:description" content="Windows x64内核9-9-9-9-12分页机制介绍之前我们学过的x86用的是2-9-9-12和10-10-12的分页机制 x64下，分页大小有4K，2M，1G的大小 如果PDE的PS位为0，则为4K，为1则为2M  如果PDPTE 的PS&#x3D;1的话，指向 1GB 页  x64下，4k分页变成了9-9-9-9-12的分页机制 虽然64位下的地址有64位，但是实际用到的只有48位，这主">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/WangFei2.jpg">
+<meta property="article:published_time" content="2024-09-03T11:54:00.000Z">
+<meta property="article:modified_time" content="2024-09-03T11:54:00.000Z">
+<meta property="article:author" content="Ccai">
+<meta property="article:tag" content="Win x64内核">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/WangFei2.jpg"><link rel="shortcut icon" href="/img/rose.png"><link rel="canonical" href="http://example.com/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Windows x64内核(3)——分页机制',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-09-03 19:54:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.2.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/WangFei2.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Cc12138's blog"><span class="site-name">Cc12138's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Windows x64内核(3)——分页机制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-03T11:54:00.000Z" title="发表于 2024-09-03 19:54:00">2024-09-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-09-03T11:54:00.000Z" title="更新于 2024-09-03 19:54:00">2024-09-03</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Windows x64内核(3)——分页机制"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Windows-x64内核"><a href="#Windows-x64内核" class="headerlink" title="Windows x64内核"></a>Windows x64内核</h1><h2 id="9-9-9-9-12分页机制介绍"><a href="#9-9-9-9-12分页机制介绍" class="headerlink" title="9-9-9-9-12分页机制介绍"></a>9-9-9-9-12分页机制介绍</h2><p>之前我们学过的x86用的是2-9-9-12和10-10-12的分页机制</p>
+<p>x64下，分页大小有4K，2M，1G的大小</p>
+<p>如果PDE的PS位为0，则为4K，为1则为2M</p>
+<p> 如果<strong>PDPTE</strong> 的PS&#x3D;1的话，指向 1GB 页 </p>
+<p>x64下，4k分页变成了9-9-9-9-12的分页机制</p>
+<p>虽然64位下的地址有64位，但是实际用到的只有48位，这主要因为以下原因：</p>
+<ol>
+<li><p><strong>当前需求有限</strong>：</p>
+</li>
+<li><p><strong>管理复杂度</strong>：</p>
+</li>
+</ol>
+<ul>
+<li>使用完整的 64 位地址空间将引入极大的管理和硬件复杂性。</li>
+</ul>
+<ol start="3">
+<li><strong>页表大小和效率</strong>：</li>
+</ol>
+<ul>
+<li>使用四级页表（9-9-9-9-12 分级结构）能够有效管理 48 位的虚拟地址空间。使用更多位数意味着增加页表层级，可能需要五级或更多级页表，这会带来额外的内存和性能开销。当前四级页表架构已经能够高效地处理 48 位地址，而无需增加复杂性。</li>
+</ul>
+<p><img src="/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1725351574352.png" alt="1725351574352"></p>
+<p>我们来依次解析下每一个数字的含义：</p>
+<p><strong>PML4（Page Map Level 4）：页目录指针表</strong></p>
+<p>在windows叫PXE</p>
+<ul>
+<li>最高的页表层级，用 9 位来索引 PML4 表项。PML4 表最多可以有 512 个条目。每个 PML4 表项指向一个 PDPT 表。<br><img src="/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1725351737296.png" alt="1725351737296"></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">PML4Entry</span> &#123;</span><br><span class="line">    <span class="type">uint64_t</span> present         : <span class="number">1</span>;   <span class="comment">// P - 1表示有效，0表示无效。</span></span><br><span class="line">    <span class="type">uint64_t</span> writable        : <span class="number">1</span>;   <span class="comment">// R/W - 可写位,0表示只读，1表示可读写。</span></span><br><span class="line">    <span class="type">uint64_t</span> userAccessible  : <span class="number">1</span>;   <span class="comment">// U/S - 控制访问权限。0表示内核模式，1表示用户模式。</span></span><br><span class="line">    <span class="type">uint64_t</span> writeThrough    : <span class="number">1</span>;   <span class="comment">// PWT - 写通位</span></span><br><span class="line">    <span class="type">uint64_t</span> cacheDisable    : <span class="number">1</span>;   <span class="comment">// PCD - 缓存禁用位</span></span><br><span class="line">    <span class="type">uint64_t</span> accessed        : <span class="number">1</span>;   <span class="comment">// A - 访问位</span></span><br><span class="line">    <span class="type">uint64_t</span> ignored1        : <span class="number">1</span>;   <span class="comment">// IGN - 忽略位 (1 bit)</span></span><br><span class="line">    <span class="type">uint64_t</span> mustBeZero1     : <span class="number">1</span>;   <span class="comment">// MBZ - 保留位，必须为 0，其实就是PS位</span></span><br><span class="line">    <span class="type">uint64_t</span> mustBeZero2     : <span class="number">1</span>;   <span class="comment">// MBZ - 保留位，必须为 0</span></span><br><span class="line">    <span class="type">uint64_t</span> available       : <span class="number">3</span>;   <span class="comment">// AVL - 操作系统可用位（3 bit）</span></span><br><span class="line">    <span class="type">uint64_t</span> pml3Address     : <span class="number">40</span>;  <span class="comment">// 页目录基地址</span></span><br><span class="line">    <span class="type">uint64_t</span> availableHigh   : <span class="number">11</span>;  <span class="comment">// 操作系统可用位高位</span></span><br><span class="line">    <span class="type">uint64_t</span> noExecute       : <span class="number">1</span>;   <span class="comment">// NX - 禁止执行位,1是不可执行，0是可执行</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><strong>PDPTE（Page Directory Pointer Table Entry）：页目录指针表项</strong></p>
+<p>在windows叫PPE</p>
+<ul>
+<li>第二级页表层级，也用 9 位来索引。每个 PDPT 表最多包含 512 个条目。每个 PDPTE 指向一个页目录表（PDE）。<br><img src="/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1725352425534.png" alt="1725352425534"></li>
+</ul>
+<p><strong>PDE（Page Directory Entry）：页目录表项</strong></p>
+<ul>
+<li>第三级页表层级，继续用 9 位来索引。PDE 表最多包含 512 个条目。每个 PDE 指向一个页表（PTE）。</li>
+</ul>
+<p><strong>PTE（Page Table Entry）：页表项</strong></p>
+<ul>
+<li>第四级页表层级，仍然用 9 位来索引。PTE 表最多包含 512 个条目。每个 PTE 指向一个实际的物理页帧。</li>
+</ul>
+<p><strong>Page Offset（页内偏移）</strong></p>
+<ul>
+<li>最后的 12 位用于页内偏移，表示一个 4KB 页内的具体地址。</li>
+</ul>
+<p><strong>TLB（Translation Lookaside Buffer）</strong> 是一种用于提高虚拟地址到物理地址转换效率的高速缓存。它是一种专用的硬件缓存，存储了最近使用的页表条目，以加速内存访问。 </p>
+<p>以下是刷新TLB的代码（不是无效代码）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mov eax,cr3</span><br><span class="line">mov cr3,eax</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="实战找4K页的物理地址"><a href="#实战找4K页的物理地址" class="headerlink" title="实战找4K页的物理地址"></a>实战找4K页的物理地址</h2><p>例如我们现在分析这个虚拟地址的物理地址</p>
+<p><img src="/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1725361499101.png" alt="1725361499101"></p>
+<p>用.formats分析一波</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">1: kd&gt; .formats fffff800`03ca3420</span><br><span class="line">Evaluate expression:</span><br><span class="line">  Hex:     fffff800`03ca3420</span><br><span class="line">  Decimal: -8796029438944</span><br><span class="line">  Decimal (unsigned) : 18446735277680112672</span><br><span class="line">  Octal:   1777777600000362432040</span><br><span class="line">  Binary:  11111111 11111111 11111000 00000000 00000011 11001010 00110100 00100000</span><br><span class="line">  Chars:   ......4 </span><br><span class="line">  Time:    ***** Invalid FILETIME</span><br><span class="line">  Float:   low 1.18845e-036 high -1.<span class="comment">#QNAN</span></span><br><span class="line">  Double:  -1.<span class="comment">#QNAN</span></span><br></pre></td></tr></table></figure>
+
+<p>拆开分析</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span> <span class="number">1111</span> <span class="number">0000</span>   <span class="number">0x1F0</span>	</span><br><span class="line"><span class="number">0</span> <span class="number">0000</span> <span class="number">0000</span>   <span class="number">0x0</span>	</span><br><span class="line"><span class="number">0</span> <span class="number">0001</span> <span class="number">1110</span>   <span class="number">0x1E</span>	</span><br><span class="line"><span class="number">0</span> <span class="number">1010</span> <span class="number">0011</span>   <span class="number">0xA3</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="number">0100</span> <span class="number">0010</span> <span class="number">0000</span> <span class="number">0x420</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>下面是Windbg查询的结果</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>: kd&gt; r cr3</span><br><span class="line">cr3=<span class="number">0000000000187000</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span>: kd&gt; !dq <span class="number">0000000000187000</span>+ <span class="number">0x1F0</span>*<span class="number">0x8</span></span><br><span class="line">#  <span class="number">187f</span>80 <span class="number">00000000</span>`<span class="number">00199063</span> <span class="number">00000000</span>`<span class="number">78f</span>04863</span><br><span class="line">#  <span class="number">187f</span>90 <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">2f</span>e42863</span><br><span class="line">#  <span class="number">187f</span>a0 <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">05400863</span></span><br><span class="line">#  <span class="number">187f</span>b0 <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">187f</span>c0 <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">187f</span>d0 <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">187f</span>e0 <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">187f</span>f0 <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">001f</span>3063</span><br><span class="line"></span><br><span class="line"><span class="number">1</span>: kd&gt; !dq <span class="number">00000</span>`<span class="number">00199000</span>+ <span class="number">0x0</span>	*<span class="number">8</span></span><br><span class="line">#  <span class="number">199000</span> <span class="number">00000000</span>`<span class="number">00198063</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">199010</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">199020</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">199030</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">199040</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">199050</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">199060</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">199070</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span>: kd&gt; !dq <span class="number">00000</span>`<span class="number">00198000</span>+<span class="number">0x1e</span>*<span class="number">8</span></span><br><span class="line">#  <span class="number">1980f</span>0 <span class="number">00000000</span>`<span class="number">001e2063</span> <span class="number">00000000</span>`<span class="number">001e3063</span></span><br><span class="line">#  <span class="number">198100</span> <span class="number">00000000</span>`<span class="number">001e4063</span> <span class="number">00000000</span>`<span class="number">001e5063</span></span><br><span class="line">#  <span class="number">198110</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">198120</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">198130</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">198140</span> <span class="number">00000000</span>`<span class="number">001</span>ec063 <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">198150</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line">#  <span class="number">198160</span> <span class="number">00000000</span>`<span class="number">00000000</span> <span class="number">00000000</span>`<span class="number">00000000</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span>: kd&gt; !dq <span class="number">00000</span>`<span class="number">001e2000</span>+<span class="number">0xA3</span>*<span class="number">8</span></span><br><span class="line">#  <span class="number">1e2518</span> <span class="number">00000000</span>`<span class="number">03</span>ca3021 <span class="number">00000000</span>`<span class="number">03</span>ca4021</span><br><span class="line">#  <span class="number">1e2528</span> <span class="number">00000000</span>`<span class="number">03</span>ca5021 <span class="number">00000000</span>`<span class="number">03</span>ca6021</span><br><span class="line">#  <span class="number">1e2538</span> <span class="number">00000000</span>`<span class="number">03</span>ca7021 <span class="number">00000000</span>`<span class="number">03</span>ca8021</span><br><span class="line">#  <span class="number">1e2548</span> <span class="number">00000000</span>`<span class="number">03</span>ca9021 <span class="number">00000000</span>`<span class="number">03</span>caa021</span><br><span class="line">#  <span class="number">1e2558</span> <span class="number">00000000</span>`<span class="number">03</span>cab021 <span class="number">00000000</span>`<span class="number">03</span>cac021</span><br><span class="line">#  <span class="number">1e2568</span> <span class="number">00000000</span>`<span class="number">03</span>cad021 <span class="number">00000000</span>`<span class="number">03</span>cae021</span><br><span class="line">#  <span class="number">1e2578</span> <span class="number">00000000</span>`<span class="number">03</span>caf021 <span class="number">00000000</span>`<span class="number">03</span>cb0021</span><br><span class="line">#  <span class="number">1e2588</span> <span class="number">00000000</span>`<span class="number">03</span>cb1021 <span class="number">00000000</span>`<span class="number">03</span>cb2021</span><br><span class="line"></span><br><span class="line"><span class="number">1</span>: kd&gt; !dq <span class="number">00000</span>`<span class="number">03</span>ca3000+<span class="number">0x420</span></span><br><span class="line"># <span class="number">3</span>ca3420 cccccccc`ccccc3cc <span class="number">00000000</span>`<span class="number">00841f</span>0f</span><br><span class="line"># <span class="number">3</span>ca3430 <span class="number">8b</span>66c28b`<span class="number">44</span>c88b45 <span class="number">0001b</span>808`<span class="number">498b</span>4811</span><br><span class="line"># <span class="number">3</span>ca3440 ccccc3cc`<span class="number">2</span>dcd0000 <span class="number">00401f</span>0f`cccccccc</span><br><span class="line"># <span class="number">3</span>ca3450 <span class="number">428b</span>4c02`<span class="number">4</span>a8b4466 <span class="number">08498b</span>48`<span class="number">118b</span>6608</span><br><span class="line"># <span class="number">3</span>ca3460 cc2dcd00`<span class="number">000002b</span>8 <span class="number">90</span>cccccc`ccccccc3</span><br><span class="line"># <span class="number">3</span>ca3470 ccc3cc2d`cdc08b41 cccccccc`cccccccc</span><br><span class="line"># <span class="number">3</span>ca3480 <span class="number">6666</span>cccc`cccccccc <span class="number">00000000</span>`<span class="number">00841f</span>0f</span><br><span class="line"># <span class="number">3</span>ca3490 <span class="number">8408418b</span>`<span class="number">48118b</span>48 <span class="number">8b</span>48c3c8`fe0374c0</span><br></pre></td></tr></table></figure>
+
+
+
+<p>查看虚拟地址，发现也是正确的</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>: kd&gt; dq fffff800`<span class="number">03</span>ca3420</span><br><span class="line">fffff800`<span class="number">03</span>ca3420  cccccccc`ccccc3cc <span class="number">00000000</span>`<span class="number">00841f</span>0f</span><br><span class="line">fffff800`<span class="number">03</span>ca3430  <span class="number">8b</span>66c28b`<span class="number">44</span>c88b45 <span class="number">0001b</span>808`<span class="number">498b</span>4811</span><br><span class="line">fffff800`<span class="number">03</span>ca3440  ccccc3cc`<span class="number">2</span>dcd0000 <span class="number">00401f</span>0f`cccccccc</span><br><span class="line">fffff800`<span class="number">03</span>ca3450  <span class="number">428b</span>4c02`<span class="number">4</span>a8b4466 <span class="number">08498b</span>48`<span class="number">118b</span>6608</span><br><span class="line">fffff800`<span class="number">03</span>ca3460  cc2dcd00`<span class="number">000002b</span>8 <span class="number">90</span>cccccc`ccccccc3</span><br><span class="line">fffff800`<span class="number">03</span>ca3470  ccc3cc2d`cdc08b41 cccccccc`cccccccc</span><br><span class="line">fffff800`<span class="number">03</span>ca3480  <span class="number">6666</span>cccc`cccccccc <span class="number">00000000</span>`<span class="number">00841f</span>0f</span><br><span class="line">fffff800`<span class="number">03</span>ca3490  <span class="number">8408418b</span>`<span class="number">48118b</span>48 <span class="number">8b</span>48c3c8`fe0374c0</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+<h2 id="分页大小为2M的情况"><a href="#分页大小为2M的情况" class="headerlink" title="分页大小为2M的情况"></a>分页大小为2M的情况</h2><p>2M的情况就没有了PTE（Page Table Entry）：页表项，且最后的偏移变成了20位</p>
+<p><img src="/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/1725362953268.png" alt="1725362953268"></p>
+<p>其他和分页大小是4K的并无啥区别</p>
+<p><strong>另外1G的页，机制为9-9-30</strong></p>
+<h2 id="x64新加的保护机制"><a href="#x64新加的保护机制" class="headerlink" title="x64新加的保护机制"></a>x64新加的保护机制</h2><p><strong>SMEP</strong></p>
+<p><strong>Supervisor Mode Execution Prevention (SMEP)</strong> 是一种硬件级别的安全机制，旨在防止操作系统内核（即特权级 0）执行用户模式（即特权级 3）内存中的代码。这是通过在处理器中设置一个标志位来实现的。</p>
+<ul>
+<li><strong>工作原理</strong>：<ul>
+<li>当 SMEP 启用时，如果处理器检测到当前正在特权级 0（内核模式）下执行用户模式内存中的代码（如从用户空间地址范围执行指令），会立即触发一个页错误异常（#PF）。</li>
+<li>SMEP 通过强制内核只执行内核空间的代码，防止攻击者利用漏洞将恶意代码注入到用户空间，并试图在内核模式下执行。</li>
+</ul>
+</li>
+<li><strong>启用条件</strong>：在支持 SMEP 的处理器上，操作系统需要在 CR4 寄存器中设置 SMEP 位（CR4.SMEP &#x3D; 1）。</li>
+<li><strong>优势</strong>：提高系统安全性，防止内核态下运行未经授权的用户态代码，减少漏洞被利用的可能性（如 ROP 攻击）。</li>
+</ul>
+<p><strong>SMAP</strong></p>
+<p><strong>Supervisor Mode Access Prevention (SMAP)</strong> 是进一步加强内核和用户空间隔离的一种机制。它控制内核模式对用户模式内存的访问权限。</p>
+<ul>
+<li><strong>工作原理</strong>：<ul>
+<li>当 SMAP 启用时，操作系统内核在访问用户模式内存时必须明确允许访问（通常通过设置特定的访问标志或临时禁用 SMAP）。</li>
+<li>如果内核尝试在未授权的情况下访问用户模式内存，会触发一个页错误异常（#PF）。</li>
+</ul>
+</li>
+<li><strong>典型使用场景</strong>：内核有时需要合法访问用户空间内存（如系统调用中传递的用户数据）。在这种情况下，内核可以临时禁用 SMAP（通过 <code>STAC</code> 指令）进行访问，完成后再重新启用 SMAP（通过 <code>CLAC</code> 指令）。</li>
+<li><strong>启用条件</strong>：在支持 SMAP 的处理器上，操作系统需要在 CR4 寄存器中设置 SMAP 位（CR4.SMAP &#x3D; 1）。</li>
+<li><strong>优势</strong>：进一步防止未授权的内存访问，增强内核空间与用户空间之间的隔离，防止某些类型的攻击（如恶意代码通过未授权的内存读写提升权限）。</li>
+</ul>
+<p>注意注意：SMEP，SMAP是可以用户关闭的</p>
+<p><strong>DSE</strong></p>
+<p>绕过思路：开启测试模式</p>
+<p><strong>Driver Signature Enforcement (DSE)</strong> 是一种 Windows 操作系统中的安全机制，确保所有内核模式的驱动程序都经过微软的数字签名。</p>
+<ul>
+<li><strong>工作原理</strong>：<ul>
+<li>在启用了 DSE 的系统上，加载到内核中的驱动程序必须经过微软签名，确保它们来自可信来源。</li>
+<li>未经签名或伪造签名的驱动程序将无法被操作系统加载，从而减少恶意软件或恶意驱动程序加载到系统中的风险。</li>
+</ul>
+</li>
+<li><strong>优势</strong>：<ul>
+<li>提高系统的整体安全性，防止未经验证的驱动程序导致系统不稳定或被恶意利用。</li>
+<li>保护操作系统的完整性，防止恶意软件通过驱动程序层进行攻击。</li>
+</ul>
+</li>
+<li><strong>绕过风险</strong>：在开发和调试环境中，有时开发人员可能会禁用 DSE（如使用测试签名模式），这可能会增加系统被恶意软件利用的风险。因此，在生产环境中强烈建议保持 DSE 启用。</li>
+</ul>
+<p><strong>4. PG（PatchGuard）</strong></p>
+<p><strong>PatchGuard</strong> 是 Windows x64 操作系统中的一个内核安全机制，用于防止未经授权的修改操作系统内核结构。</p>
+<ul>
+<li><strong>工作原理</strong>：<ul>
+<li>PatchGuard 定期检查内核代码和关键数据结构的完整性（如系统服务描述符表 (SSDT)、中断描述符表 (IDT)、全局描述符表 (GDT) 等）。</li>
+<li>如果检测到任何未经授权的修改（如恶意软件试图在内核中进行钩子或修改关键数据结构），PatchGuard 会触发蓝屏（BSOD），以防止潜在的系统危害。</li>
+</ul>
+</li>
+<li><strong>优势</strong>：<ul>
+<li>保证了操作系统内核的完整性和稳定性。</li>
+<li>防止内核模式 rootkit 和其他低级恶意软件的攻击，这些攻击通常依赖于修改内核数据结构或代码路径。</li>
+</ul>
+</li>
+<li><strong>挑战</strong>：PatchGuard 也限制了合法的第三方安全软件和调试工具对内核的访问，因此这些工具需要找到兼容的方法来工作，而不会触发 PatchGuard。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Ccai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/">http://example.com/x64%E5%86%85%E6%A0%B83(x64%E4%B8%8B%E7%9A%84%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Cc12138's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Win-x64%E5%86%85%E6%A0%B8/">Win x64内核</a></div><div class="post_share"><div class="social-share" data-image="/img/WangFei2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/" title="Windows x64内核(4)——回调函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Windows x64内核(4)——回调函数</div></div></a></div><div class="next-post pull-right"><a href="/x64%E5%86%85%E6%A0%B82(%E5%A4%A9%E5%A0%82%E4%B9%8B%E9%97%A8)/" title="Windows x64内核(2)——天堂之门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Windows x64内核(2)——天堂之门</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/x64%E5%86%85%E6%A0%B81(x64%E5%86%85%E6%A0%B8%E4%B8%8Ex86%E7%9A%84%E4%B8%80%E4%BA%9B%E5%8C%BA%E5%88%AB)/" title="win x64内核（1）——x64内核与x86的一些区别"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-01</div><div class="title">win x64内核（1）——x64内核与x86的一些区别</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B82(%E5%A4%A9%E5%A0%82%E4%B9%8B%E9%97%A8)/" title="Windows x64内核(2)——天堂之门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-03</div><div class="title">Windows x64内核(2)——天堂之门</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B84(%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0)/" title="Windows x64内核(4)——回调函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-10</div><div class="title">Windows x64内核(4)——回调函数</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B85(%E8%BF%87%E6%BB%A4%E9%A9%B1%E5%8A%A8)/" title="Windows x64内核(5)——过滤驱动"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-10</div><div class="title">Windows x64内核(5)——过滤驱动</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B86(%E9%81%8D%E5%8E%86%E8%BF%9B%E7%A8%8B)/" title="Windows x64内核(6)——遍历进程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-11</div><div class="title">Windows x64内核(6)——遍历进程</div></div></a></div><div><a href="/x64%E5%86%85%E6%A0%B87(%E5%BC%BA%E5%88%B6%E5%85%B3%E9%97%AD)/" title="Windows x64内核(7)——强制关闭进程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-12</div><div class="title">Windows x64内核(7)——强制关闭进程</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/WangFei2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Ccai</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">71</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/0xcc12138" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">ROIS Team Member</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Windows-x64%E5%86%85%E6%A0%B8"><span class="toc-number">1.</span> <span class="toc-text">Windows x64内核</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#9-9-9-9-12%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">9-9-9-9-12分页机制介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98%E6%89%BE4K%E9%A1%B5%E7%9A%84%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80"><span class="toc-number">1.2.</span> <span class="toc-text">实战找4K页的物理地址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E9%A1%B5%E5%A4%A7%E5%B0%8F%E4%B8%BA2M%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-number">1.3.</span> <span class="toc-text">分页大小为2M的情况</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#x64%E6%96%B0%E5%8A%A0%E7%9A%84%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6"><span class="toc-number">1.4.</span> <span class="toc-text">x64新加的保护机制</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/WDF%E5%AD%A6%E4%B9%A0/" title="WDF框架学习">WDF框架学习</a><time datetime="2025-01-12T15:00:00.000Z" title="发表于 2025-01-12 23:00:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/NDIS,WFP%E7%BD%91%E7%BB%9C%E8%BF%87%E6%BB%A4/" title="NDIS/WFP网络过滤">NDIS/WFP网络过滤</a><time datetime="2025-01-12T02:32:00.000Z" title="发表于 2025-01-12 10:32:00">2025-01-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%97%85%E6%AF%92%E5%88%86%E6%9E%90/" title="病毒分析">病毒分析</a><time datetime="2025-01-06T14:11:00.000Z" title="发表于 2025-01-06 22:11:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/%E7%BD%91%E7%BB%9C%E9%98%B2%E7%81%AB%E5%A2%99%E6%8A%80%E6%9C%AFTDI/" title="TDI网络防火墙技术">TDI网络防火墙技术</a><time datetime="2025-01-06T03:28:00.000Z" title="发表于 2025-01-06 11:28:00">2025-01-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/ByPass_UAC/" title="ByPassUAC方法研究(持续更新)">ByPassUAC方法研究(持续更新)</a><time datetime="2024-12-31T07:00:00.000Z" title="发表于 2024-12-31 15:00:00">2024-12-31</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Ccai</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>
